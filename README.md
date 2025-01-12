@@ -29,6 +29,7 @@ An open-source add-on board for Raspberry Pi (Zero/3/4/5) that adds display outp
   - Built-in audio circuit when using 21-bit display mode
   - Includes buffering, filtering, and amplification
   - Compatible with headphones, small speakers, or amplifiers
+  - NOTE: Audio is not working on the Raspberry Pi 5 because they have not yet written the PWM audio drivers.
 
 ## Project Structure
 
