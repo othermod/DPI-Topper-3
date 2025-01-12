@@ -1,0 +1,11 @@
+# Set default to not convert line endings
+* -text
+
+# Source files that must have LF
+*.c text eol=lf
+*.h text eol=lf
+*.cpp text eol=lf
+*.ino text eol=lf
+*.dts text eol=lf
+Makefile text eol=lf
+*.md text eol=lf
