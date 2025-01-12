@@ -7,6 +7,7 @@ An open-source add-on board for Raspberry Pi (Zero/3/4/5) that adds display outp
     <td><img src="image1.jpg" alt="Topper 3 Board"/></td>
     <td><img src="image2.jpg" alt="Topper 3 on Pi 5"/></td>
     <td><img src="image3.jpg" alt="Topper 3 on Pi Zero"/></td>
+    <td><img src="image4.jpg" alt="Topper 3 Touch"/></td>
   </tr>
 </table>
 
@@ -34,7 +35,6 @@ An open-source add-on board for Raspberry Pi (Zero/3/4/5) that adds display outp
 ## Project Structure
 
 ```
-.
 ├── atmega/          # ATMega firmware and flashing instructions
 ├── boards/          # PCB Gerber files and Bill of Materials
 ├── datasheets/      # LCD display documentation
