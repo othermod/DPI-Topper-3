@@ -27,11 +27,11 @@ static int gamepad_read(struct i2c_client *client, u8 *data, int len)
     static struct i2c_msg msg = {
         .flags = I2C_M_RD,
     };
-    
+
     msg.addr = client->addr;
     msg.len = len;
     msg.buf = data;
-    
+
     return i2c_transfer(client->adapter, &msg, 1);
 }
 
@@ -62,7 +62,7 @@ static void gamepad_work(struct work_struct *work)
 
     if (likely(gamepad_read(data->client, buf, sizeof(buf)) >= 0)) {
         process_gamepad_data(data, buf);
-        
+
         changed = data->prev_buttons ^ data->buttons;
         if (changed) {
             report_button_changes(input, changed, data->buttons);
@@ -73,7 +73,7 @@ static void gamepad_work(struct work_struct *work)
         input_report_abs(input, ABS_Y, data->joy1_y);
         input_report_abs(input, ABS_RX, data->joy2_x);
         input_report_abs(input, ABS_RY, data->joy2_y);
-        
+
         input_sync(input);
     }
 
@@ -94,26 +94,26 @@ static int gamepad_probe(struct i2c_client *client)
     u32 props_max = 255;
     u32 props_fuzz = 0;
     u32 props_flat = 0;
-    
+
     dev_info(&client->dev, "Probing topper3-gamepad at address 0x%02x\n", client->addr);
-    
+
     if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
         dev_err(&client->dev, "I2C functionality not supported\n");
         return -ENXIO;
     }
-    
+
     data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
     input = devm_input_allocate_device(&client->dev);
     if (!data || !input) {
         dev_err(&client->dev, "Failed to allocate memory\n");
         return -ENOMEM;
     }
-    
+
     dev_info(&client->dev, "Memory allocated successfully\n");
 
     data->client = client;
     data->input = input;
-    
+
     of_property_read_u32(client->dev.of_node, "poll-interval-ms", &props_poll_ms);
     of_property_read_u32(client->dev.of_node, "axis-minimum", &props_min);
     of_property_read_u32(client->dev.of_node, "axis-maximum", &props_max);
@@ -125,7 +125,7 @@ static int gamepad_probe(struct i2c_client *client)
     data->axis_max = props_max;
     data->axis_fuzz = props_fuzz;
     data->axis_flat = props_flat;
-    
+
     INIT_DELAYED_WORK(&data->work, gamepad_work);
 
     input->name = "PS3 Controller";
@@ -198,7 +198,7 @@ static struct i2c_driver gamepad_driver = {
 module_i2c_driver(gamepad_driver);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("OtherMod");
+MODULE_AUTHOR("othermod");
 MODULE_DESCRIPTION("DPI Topper 3 Gamepad Driver for Raspberry Pi");
 MODULE_VERSION("1.0");
 MODULE_ALIAS("i2c:topper3-gamepad");
