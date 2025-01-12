@@ -11,7 +11,7 @@ An open-source add-on board for Raspberry Pi (Zero/3/4/5) that adds display outp
   - Tested with 4.3" 800x480 display (see datasheets/)
   - Full 24-bit color support
   - Optional 21-bit mode freeing up 3 GPIOs
-  - 8-level brightness control via onboard or external button
+  - 8-level brightness control via onboard button, external button, and I2C
   - I2C capacitive touch panel support
 
 - **Input Controls**
@@ -28,7 +28,7 @@ An open-source add-on board for Raspberry Pi (Zero/3/4/5) that adds display outp
 
 ```
 .
-├── atmega/           # ATMega firmware and flashing instructions
+├── atmega/          # ATMega firmware and flashing instructions
 ├── boards/          # PCB Gerber files and Bill of Materials
 ├── datasheets/      # LCD display documentation
 └── rpi/             # Raspberry Pi drivers
