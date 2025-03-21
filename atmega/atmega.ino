@@ -8,17 +8,12 @@ struct i2cStructure {
     uint8_t joyLY;
     uint8_t joyRX;
     uint8_t joyRY;
-    union {
-        struct Status {
-            uint8_t brightness : 3;  // Bits 0-2: Display brightness level (1-8)
-            bool reserved1 : 1; 
-            bool reserved2 : 1;
-            bool reserved3 : 1;
-            bool reserved4 : 1;
-            bool reserved5 : 1;
-        } status;
-        uint8_t systemStatus;        // Access as raw byte
-    };
+    uint8_t brightness : 3;  // Bits 0-2: Display brightness level (0-7)
+      bool reserved1 : 1; 
+      bool reserved2 : 1;
+      bool reserved3 : 1;
+      bool reserved4 : 1;
+      bool reserved5 : 1;
     uint16_t crc16;
 };
 
@@ -33,51 +28,6 @@ uint8_t currentJoystick = 0;
 
 // Loop control
 #define UPDATE_INTERVAL_REACHED currentTime - lastUpdateTime >= LOOP_MS
-
-// Pin Definitions
-#define BTN_DISP C,2
-#define LCD_1W C,3
-
-// ADC pins
-#define JOY_LX 0
-#define JOY_LY 1
-#define JOY_RX 6
-#define JOY_RY 7
-
-// GPIO Port manipulation macros
-#define DDR(p) DDR##p
-#define PORT(p) PORT##p
-#define PIN(p) PIN##p
-#define BIT(n) (1<<n)
-
-// GPIO Pin control macros
-#define setOutMode(p,n) DDR(p)|=BIT(n)
-#define setInMode(p,n) DDR(p)&=~BIT(n)
-#define setHigh(p,n) PORT(p)|=BIT(n)
-#define setLow(p,n) PORT(p)&=~BIT(n)
-#define getPin(p,n) (PIN(p)&BIT(n))
-
-// GPIO Simplified pin interface macros
-#define setPinAsOutput(pin) setOutMode(pin)
-#define setPinAsInput(pin) setInMode(pin)
-#define setPinHigh(pin) setHigh(pin)
-#define setPinLow(pin) setLow(pin)
-#define readPin(pin) getPin(pin)
-
-// TPS61160 Backlight EasyScale Protocoli
-#define LCD_ADDR 0x72
-
-// I2C Command IDs
-#define I2C_CMD_BRIGHT 0x10
-
-// LCD timing parameters (microseconds)
-#define T_START 10   // Start condition
-#define T_EOS 10     // End of sequence
-#define T_H_LB 10    // High time, low bit
-#define T_H_HB 25    // High time, high bit
-#define T_L_LB 25    // Low time, low bit
-#define T_L_HB 10    // Low time, high bit
-#define T_OFF 3000   // Reset time
 
 void initGPIOs() {
   // Set all pins as inputs
@@ -122,18 +72,18 @@ void calculateCRC() {
 }
 
 void readEEPROM() {
-  i2cdata.status.brightness = EEPROM.read(EEPROM_BRIGHT_ADDR);
-  if (i2cdata.status.brightness > 7) {
-    i2cdata.status.brightness = BRIGHTNESS_DEFAULT;
+  i2cdata.brightness = EEPROM.read(EEPROM_BRIGHT_ADDR);
+  if (i2cdata.brightness > 7) {
+    i2cdata.brightness = BRIGHTNESS_DEFAULT;
   }
 }
 
 void writeBrightnessToEEPROM() {
-  EEPROM.update(EEPROM_BRIGHT_ADDR, i2cdata.status.brightness);
+  EEPROM.update(EEPROM_BRIGHT_ADDR, i2cdata.brightness);
 }
 
 void setBrightness() {
-    byte bytesToSend[] = {LCD_ADDR,i2cdata.status.brightness * 4 + 1};
+    byte bytesToSend[] = {LCD_ADDR,i2cdata.brightness * 4 + 1};
     
     noInterrupts();  
     for (int byte = 0; byte < 2; byte++) {
@@ -198,7 +148,7 @@ void checkDisplayButton() {
     if (!readPin(BTN_DISP)) {
         dispPressed = true;
     } else if (dispPressed) {
-        i2cdata.status.brightness++; // increment to next brightness. valid brightness levels are 0-7. this will roll over to 0 because it is only 3 bits
+        i2cdata.brightness++; // increment to next brightness. valid brightness levels are 0-7. this will roll over to 0 because it is only 3 bits
         dispPressed = false;
         setBrightness();
         writeBrightnessToEEPROM();
@@ -214,7 +164,7 @@ void processIncomingCommand() {
     switch (rxData[0]) {
         case I2C_CMD_BRIGHT:
             if (rxData[1] < 8) {
-                i2cdata.status.brightness = rxData[1];  // Store 0-7 to the status
+                i2cdata.brightness = rxData[1];  // Store 0-7 to the status
             }
             break;
     }
