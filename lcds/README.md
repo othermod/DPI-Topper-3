@@ -1,5 +1,3 @@
-# Raspberry Pi DPI Topper 3
-
 ## Compatible LCDs
 
 <table>
@@ -16,7 +14,7 @@
   <td title="Size">4.3"</td>
   <td title="Resolution">800×480</td>
   <td title="Model">ER-TFT043A1-7</td>
-  <td title="Description">Good quality IPS display with optional capacitive touch screen. Used in the PSPi 6 project</td>
+  <td title="Description">Good quality IPS display with optional capacitive touch panel. Used in the PSPi 6 project</td>
   <th title="Touch Driver">✅</th>
   <td title="Purchase Link"><a href="https://www.buydisplay.com/4-3-800x480-ips-tft-lcd-module-all-viewing-optl-touchscreen-display">Buy</a></td>
   <td title="Datasheet"><a href="/ER-TFT043A1-7">Datasheet</a></td>
