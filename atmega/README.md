@@ -90,6 +90,8 @@ After successful flashing, disconnect the wires from your Raspberry Pi. The Topp
 
 The process for flashing with Arduino is similar to the Raspberry Pi method.
 
+**Warning:** Ensure that an LCD is NOT connected to the Topper when flashing the firmware using an Arduino.
+
 #### Connecting to the Arduino
 
 ![Arduino to Topper Connections](images/arduino.jpg)
