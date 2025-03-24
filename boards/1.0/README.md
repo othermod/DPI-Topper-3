@@ -27,6 +27,6 @@ The board is available in two variants: Minimal and Full. Both use the same Gerb
     - Audio output<br>
     - Analog inputs<br>
     - Digital inputs<br>
-    - 8-level brightness control using the onboard or external button</td>
+    - 8-level brightness control using the onboard button, external button, and I2C</td>
   </tr>
 </table>
