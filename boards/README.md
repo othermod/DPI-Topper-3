@@ -15,23 +15,17 @@ Pre‑assembled boards will be available soon at [othermod.com](https://othermod
    * Pick‑and‑Place file is in the `pnp` subfolder.
 
 ### Manufacturing Recommendations  
-- I use [JLCPCB](https://jlcpcb.com/?from=othermod) for all the boards I sell. Feel free to use my link if you want to try them out.  
-  *Note: I have an affiliate agreement with JLCPCB and receive referral credit for purchases.*  
-- Board thickness: **1 mm** recommended (but not mandatory).  
+- Board thickness: **1 mm** or greater recommended.  
 - Standard FR‑4 material is suitable.
+
+### Design Resources  
+
+* [EasyEDA Project](https://oshwlab.com/adamseamster/dpi-topper-3-shared) – online editor with the latest designs.
 
 ---
 
 ## Board Layout  
 ![Top View of DPI Topper 3 PCB](1.0.1/img/full.png)
-
----
-
-## Project Files  
-
-* [EasyEDA Project](https://oshwlab.com/adamseamster/dpi-topper-3-shared) – online editor with the latest designs.  
-* Board and schematic JSON files are included in each version’s `pcb` folder for importing into EasyEDA.  
-* Gerber files are provided for direct manufacturing.
 
 ---
 
@@ -56,12 +50,11 @@ The board is available in two variants: **Minimal** (lower‑cost, essential fea
 
 ---
 
-## Version History  
+## Version History
 
-### PCB 1.0 – March 7, 2025  
+### PCB 1.0 – March 7, 2025
 - Initial release.  
-- Includes the two variants described above.
 
-### PCB 1.1 – March 21, 2025  
-- Added website link to top of board documentation page.  
-- No known bugs.
+### PCB 1.1 – March 21, 2025  
+- Added website link to top of board documentation page.
+- No functional changes.
