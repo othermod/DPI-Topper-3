@@ -25,7 +25,7 @@ Pre‑assembled boards will be available soon at [othermod.com](https://othermod
 ---
 
 ## Board Layout  
-![Top View of DPI Topper 3 PCB](1.0.1/img/full.png)
+![Top View of DPI Topper 3 PCB](1.0.1/pcb/full.png)
 
 ---
 
@@ -39,8 +39,8 @@ The board is available in two variants: **Minimal** (lower‑cost, essential fea
     <td align="center">Full PCB</td>
   </tr>
   <tr>
-    <td><img src="1.0/img/minimal.png" alt="Minimal Board"></td>
-    <td><img src="1.0/img/full.png" alt="Full Board"></td>
+    <td><img src="1.0.1/pcb/minimal.png" alt="Minimal Board"></td>
+    <td><img src="1.0.1/pcb/full.png" alt="Full Board"></td>
   </tr>
   <tr>
     <td>The Minimal PCB variant is the lower‑cost option. It includes only the necessary parts to get the following:<br>- Display output<br>- Touch panel support<br>- Manual backlight control<br>- 3 extra GPIOs (when using the board in 21‑bit mode)</td>
@@ -52,9 +52,9 @@ The board is available in two variants: **Minimal** (lower‑cost, essential fea
 
 ## Version History
 
-### PCB 1.0 – March 7, 2025
-- Initial release.  
-
 ### PCB 1.1 – March 21, 2025  
 - Added website link to top of board documentation page.
 - No functional changes.
+
+### PCB 1.0 – March 7, 2025
+- Initial release.  
