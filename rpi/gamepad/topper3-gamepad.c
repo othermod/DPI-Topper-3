@@ -22,19 +22,6 @@ struct gamepad_data {
     int axis_flat;
 };
 
-static int gamepad_read(struct i2c_client *client, u8 *data, int len)
-{
-    static struct i2c_msg msg = {
-        .flags = I2C_M_RD,
-    };
-
-    msg.addr = client->addr;
-    msg.len = len;
-    msg.buf = data;
-
-    return i2c_transfer(client->adapter, &msg, 1);
-}
-
 static inline void report_button_changes(struct input_dev *input, u16 changed, u16 buttons)
 {
     while (changed) {
@@ -59,24 +46,30 @@ static void gamepad_work(struct work_struct *work)
     struct input_dev *input = data->input;
     u8 buf[6];
     u16 changed;
+    int ret;
 
-    if (likely(gamepad_read(data->client, buf, sizeof(buf)) >= 0)) {
-        process_gamepad_data(data, buf);
-
-        changed = data->prev_buttons ^ data->buttons;
-        if (changed) {
-            report_button_changes(input, changed, data->buttons);
-            data->prev_buttons = data->buttons;
-        }
-
-        input_report_abs(input, ABS_X, data->joy1_x);
-        input_report_abs(input, ABS_Y, data->joy1_y);
-        input_report_abs(input, ABS_RX, data->joy2_x);
-        input_report_abs(input, ABS_RY, data->joy2_y);
-
-        input_sync(input);
+    ret = i2c_master_recv(data->client, buf, sizeof(buf));
+    if (ret < 0) {
+        dev_err_ratelimited(&data->client->dev, "I2C read failed: %d\n", ret);
+        goto reschedule;
     }
 
+    process_gamepad_data(data, buf);
+
+    changed = data->prev_buttons ^ data->buttons;
+    if (changed) {
+        report_button_changes(input, changed, data->buttons);
+        data->prev_buttons = data->buttons;
+    }
+
+    input_report_abs(input, ABS_X, data->joy1_x);
+    input_report_abs(input, ABS_Y, data->joy1_y);
+    input_report_abs(input, ABS_RX, data->joy2_x);
+    input_report_abs(input, ABS_RY, data->joy2_y);
+
+    input_sync(input);
+
+reschedule:
     schedule_delayed_work(&data->work, msecs_to_jiffies(data->poll_interval));
 }
 
@@ -89,6 +82,7 @@ static int gamepad_probe(struct i2c_client *client)
     struct gamepad_data *data;
     struct input_dev *input;
     int error;
+    u8 test_buf[6];
     u32 props_poll_ms = 10;
     u32 props_min = 0;
     u32 props_max = 255;
@@ -100,6 +94,12 @@ static int gamepad_probe(struct i2c_client *client)
     if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
         dev_err(&client->dev, "I2C functionality not supported\n");
         return -ENXIO;
+    }
+
+    /* Test device communication */
+    if (i2c_master_recv(client, test_buf, sizeof(test_buf)) < 0) {
+        dev_err(&client->dev, "Failed to communicate with device\n");
+        return -ENODEV;
     }
 
     data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
@@ -137,21 +137,13 @@ static int gamepad_probe(struct i2c_client *client)
     __set_bit(EV_KEY, input->evbit);
     __set_bit(EV_ABS, input->evbit);
 
-    {
-        int i;
-        for (i = 0; i < 16; i++)
-            __set_bit(BTN_TRIGGER_HAPPY1 + i, input->keybit);
-    }
+    for (int i = 0; i < 16; i++)
+        __set_bit(BTN_TRIGGER_HAPPY1 + i, input->keybit);
 
-    {
-        const unsigned int axes[] = { ABS_X, ABS_Y, ABS_RX, ABS_RY };
-        size_t i;
-        for (i = 0; i < ARRAY_SIZE(axes); i++) {
-            input_set_abs_params(input, axes[i],
-                               data->axis_min, data->axis_max,
-                               data->axis_fuzz, data->axis_flat);
-        }
-    }
+    input_set_abs_params(input, ABS_X, data->axis_min, data->axis_max, data->axis_fuzz, data->axis_flat);
+    input_set_abs_params(input, ABS_Y, data->axis_min, data->axis_max, data->axis_fuzz, data->axis_flat);
+    input_set_abs_params(input, ABS_RX, data->axis_min, data->axis_max, data->axis_fuzz, data->axis_flat);
+    input_set_abs_params(input, ABS_RY, data->axis_min, data->axis_max, data->axis_fuzz, data->axis_flat);
 
     input_set_drvdata(input, data);
     i2c_set_clientdata(client, data);
