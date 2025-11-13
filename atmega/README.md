@@ -35,12 +35,12 @@ Before you begin the flashing process, you need to connect the Topper board to y
 
 ![Raspberry Pi GPIO Pinout](/atmega/images/pi.jpg)
 
-- 🔴 Connect VCC to Raspberry Pi 3.3V (Pin 1 or 17)
-- ⚫ Connect GND to any Raspberry Pi GND pin (e.g., Pin 6)
-- 🟢 Connect Clock to Raspberry Pi GPIO3
-- 🟠 Connect MISO to Raspberry Pi GPIO6
-- 🔵 Connect MOSI to Raspberry Pi GPIO5
-- 🟡 Connect Reset to Raspberry Pi GPIO2
+- 🔴 Connect Topper VCC to Raspberry Pi 3.3V (Pin 1 or 17)
+- ⚫ Connect Topper GND to any Raspberry Pi GND pin (e.g., Pin 6)
+- 🟢 Connect Topper Clock to Raspberry Pi GPIO3
+- 🟠 Connect Topper MISO to Raspberry Pi GPIO6
+- 🔵 Connect Topper MOSI to Raspberry Pi GPIO5
+- 🟡 Connect Topper Reset to Raspberry Pi GPIO2
 
 Ensure all connections are secure and not bridged before proceeding with the flashing process.
 
@@ -72,17 +72,24 @@ Ensure all connections are secure and not bridged before proceeding with the fla
    The entry may be commented out by default, so remove the # from the beginning of each line.
 
 #### Flashing
-1. Copy the [firmware file](atmega.ino.arduino_standard.hex) to your Raspberry Pi.
+1. Copy the [firmware file](topper.ino.arduino_standard.hex) and [flashing script](topper.ino.arduino_standard.hex) to your Raspberry Pi.
 
-2. Flash the fuses:
-   ```
-   sudo avrdude -p m8 -c linuxgpio -U lfuse:w:0xE4:m -U hfuse:w:0xDC:m
-   ```
+2. Flash the fuses and firmware:
+```
+sudo bash flash.sh
+```
 
-3. Flash the firmware:
-   ```
-   sudo avrdude -p m8 -c linuxgpio -e -U flash:w:atmega.ino.arduino_standard.hex
-   ```
+If you prefer to flash the fuses and firmware manually, use the following commands:
+
+Fuses:
+```
+sudo avrdude -p m8 -c linuxgpio -U lfuse:w:0xE4:m -U hfuse:w:0xDC:m
+ ```
+
+Firmware:
+ ```
+sudo avrdude -p m8 -c linuxgpio -e -U flash:w:atmega.ino.arduino_standard.hex
+ ```
 
 After successful flashing, disconnect the wires from your Raspberry Pi. The Topper board is ready to use.
 
@@ -99,12 +106,12 @@ The process for flashing with Arduino is similar to the Raspberry Pi method.
 Here's how to make the connections:
 
 1. Arduino to Topper connections:
-   - 🔴 Connect VCC to Arduino 5V
-   - ⚫ Connect GND to Arduino GND
-   - 🟢 Connect Clock to Arduino Pin 13 (Clock)
-   - 🟠 Connect MISO Arduino Pin 12 (MISO)
-   - 🔵 Connect MOSI Arduino Pin 11 (MOSI)
-   - 🟡 Connect Reset Arduino Pin 10 (Reset)
+   - 🔴 Connect Topper VCC to Arduino 5V
+   - ⚫ Connect Topper GND to Arduino GND
+   - 🟢 Connect Topper Clock to Arduino Pin 13 (Clock)
+   - 🟠 Connect Topper MISO to Arduino Pin 12 (MISO)
+   - 🔵 Connect Topper MOSI to Arduino Pin 11 (MOSI)
+   - 🟡 Connect Topper Reset to Arduino Pin 10
 
 
 #### Modifying boards.txt configuration
