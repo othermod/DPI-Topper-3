@@ -43,11 +43,15 @@
 #define setPinLow(pin) setLow(pin)
 #define readPin(pin) getPin(pin)
 
-// TPS61160 Backlight EasyScale Protocoli
+// TPS61160 Backlight EasyScale Protocol
 #define LCD_ADDR 0x72
 
 // I2C Command IDs
-#define I2C_CMD_BRIGHT 0x10
+#define I2C_CMD_BRIGHT 0x10  // Set brightness (0-7) or disable display (8)
+#define I2C_CMD_CRC 0x20     // Enable/disable CRC calculation
+
+// I2C Command Values
+#define I2C_BRIGHT_DISABLE 8  // Send this value with I2C_CMD_BRIGHT to disable display
 
 // LCD timing parameters (microseconds)
 #define T_START 10   // Start condition
