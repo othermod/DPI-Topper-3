@@ -260,6 +260,11 @@ void processI2CCommand() {
       if (rxData[1] == I2C_BRIGHT_DISABLE) {
         // Special value: disable display
         disableDisplay();
+      } else if (rxData[1] == I2C_BRIGHT_ENABLE) {
+        // Special value: enable display at previous brightness
+        if (!readPin(LCD_1W)) {
+          enableDisplay();
+        }
       } else if (rxData[1] <= 7) {
         i2cdata.status.brightness = rxData[1];
 
