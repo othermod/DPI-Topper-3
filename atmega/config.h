@@ -52,6 +52,7 @@
 
 // I2C Command Values
 #define I2C_BRIGHT_DISABLE 8  // Send this value with I2C_CMD_BRIGHT to disable display
+#define I2C_BRIGHT_ENABLE 9   // Send this value with I2C_CMD_BRIGHT to enable display at previous brightness
 
 // LCD timing parameters (microseconds)
 #define T_START 10   // Start condition
