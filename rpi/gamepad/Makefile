@@ -1,68 +1,78 @@
-KERNEL_DIR ?= /usr/src/linux-headers-$(shell uname -r)
-PWD := $(shell pwd)
-MODULE_NAME = topper3-gamepad
-DTB_NAME = $(MODULE_NAME).dtbo
-DTS_NAME = $(MODULE_NAME).dts
+# Simplified Makefile
+# make       - Build for current system
+# make cross - Build for all Raspberry Pi models and architectures
 
-# Default paths for installation
-MODULE_INSTALL_DIR = /lib/modules/$(shell uname -r)/kernel/drivers/input
-OVERLAY_INSTALL_DIR = /boot/overlays
+TARGET = gamepad
+SRC = gamepad.c
+INSTALL_DIR = /usr/local/bin
 
-obj-m += $(MODULE_NAME).o
+# Base compiler flags
+CFLAGS = -O3 -flto -Wall -Wextra -std=c11
+CFLAGS += -fomit-frame-pointer -ffast-math -pipe
+LDFLAGS = -flto -s
 
-# Check for kernel headers before proceeding
-define check_kernel_headers
-	@if [ ! -d "$(KERNEL_DIR)" ]; then \
-		echo "ERROR: Kernel headers not found in $(KERNEL_DIR)"; \
-		echo "Please install kernel headers using:"; \
-		echo "    sudo apt update"; \
-		echo "    sudo apt install raspberrypi-kernel-headers"; \
-		exit 1; \
-	fi
-endef
+# Native compilation (default)
+CC = gcc
 
-all: check_headers module dtb
+all: $(TARGET)
 
-check_headers:
-	$(call check_kernel_headers)
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) -march=native -mtune=native $< -o $@ $(LDFLAGS)
 
-module: check_headers
-	$(MAKE) -C $(KERNEL_DIR) M=$(PWD) modules
+# Cross-compilation target
+CC_32 = arm-linux-gnueabihf-gcc
+CC_64 = aarch64-linux-gnu-gcc
 
-dtb:
-	dtc -@ -I dts -O dtb -o $(DTB_NAME) $(DTS_NAME)
+CROSS_TARGETS = $(TARGET)-pi0 \
+                $(TARGET)-pi3-32 $(TARGET)-pi3-64 \
+                $(TARGET)-pi4-32 $(TARGET)-pi4-64 \
+                $(TARGET)-pi5-32 $(TARGET)-pi5-64
+
+cross: $(CROSS_TARGETS)
+	@echo ""
+	@echo "Built all cross-compiled binaries:"
+	@ls -lh $(TARGET)-*
+	@echo ""
+
+$(TARGET)-pi0: $(SRC)
+	$(CC_32) $(CFLAGS) -march=armv6 -mtune=arm1176jzf-s -mfpu=vfp -marm $< -o $@ $(LDFLAGS)
+
+$(TARGET)-pi3-32: $(SRC)
+	$(CC_32) $(CFLAGS) -march=armv8-a+crc -mtune=cortex-a53 -mfpu=neon-fp-armv8 $< -o $@ $(LDFLAGS)
+
+$(TARGET)-pi3-64: $(SRC)
+	$(CC_64) $(CFLAGS) -march=armv8-a+crc -mtune=cortex-a53 $< -o $@ $(LDFLAGS)
+
+$(TARGET)-pi4-32: $(SRC)
+	$(CC_32) $(CFLAGS) -march=armv8-a+crc -mtune=cortex-a72 -mfpu=neon-fp-armv8 $< -o $@ $(LDFLAGS)
+
+$(TARGET)-pi4-64: $(SRC)
+	$(CC_64) $(CFLAGS) -march=armv8-a+crc+simd -mtune=cortex-a72 $< -o $@ $(LDFLAGS)
+
+$(TARGET)-pi5-32: $(SRC)
+	$(CC_32) $(CFLAGS) -march=armv8-a+crc -mtune=cortex-a76 -mfpu=neon-fp-armv8 $< -o $@ $(LDFLAGS)
+
+$(TARGET)-pi5-64: $(SRC)
+	$(CC_64) $(CFLAGS) -march=armv8.2-a+crc+simd -mtune=cortex-a76 $< -o $@ $(LDFLAGS)
 
 clean:
-	$(MAKE) -C $(KERNEL_DIR) M=$(PWD) clean
-	rm -f $(DTB_NAME)
+	rm -f $(TARGET) $(CROSS_TARGETS)
 
-install: all
-	@if [ "$(shell id -u)" != "0" ]; then \
+install: $(TARGET)
+	@if [ "$$(id -u)" != "0" ]; then \
 		echo "You must be root to install. Please run with sudo."; \
 		exit 1; \
 	fi
-	install -d $(MODULE_INSTALL_DIR)
-	install -d $(OVERLAY_INSTALL_DIR)
-	install -m 644 $(MODULE_NAME).ko $(MODULE_INSTALL_DIR)
-	install -m 644 $(DTB_NAME) $(OVERLAY_INSTALL_DIR)
-	depmod -a
-	@echo ""
-	@echo "Installation complete. To enable the driver:"
-	@echo "1. Add the following line to /boot/config.txt:"
-	@echo "   dtoverlay=topper3-gamepad"
-	@echo "2. Reboot your Raspberry Pi"
-	@echo ""
+	install -d $(INSTALL_DIR)
+	install -m 755 $(TARGET) $(INSTALL_DIR)
+	@echo "$(TARGET) installed to $(INSTALL_DIR)"
 
 uninstall:
-	@if [ "$(shell id -u)" != "0" ]; then \
+	@if [ "$$(id -u)" != "0" ]; then \
 		echo "You must be root to uninstall. Please run with sudo."; \
 		exit 1; \
 	fi
-	rm -f $(MODULE_INSTALL_DIR)/$(MODULE_NAME).ko
-	rm -f $(OVERLAY_INSTALL_DIR)/$(DTB_NAME)
-	depmod -a
-	@echo ""
-	@echo "Uninstallation complete. Don't forget to remove the dtoverlay line from /boot/config.txt"
-	@echo ""
+	rm -f $(INSTALL_DIR)/$(TARGET)
+	@echo "$(TARGET) uninstalled"
 
-.PHONY: all check_headers module dtb clean install uninstall
+.PHONY: all cross clean install uninstall
