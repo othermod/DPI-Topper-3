@@ -28,7 +28,7 @@ Pre-assembled boards are available at [othermod.com](https://othermod.com). Perf
 
 ## Board Layout
 
-![Top View of DPI Topper 3 PCB](1.0.1/pcb/solder/full.png)
+![Top View of DPI Topper 3 PCB](1.0.1/pcb/solder/gamepad.png)
 
 ---
 
@@ -36,9 +36,9 @@ Pre-assembled boards are available at [othermod.com](https://othermod.com). Perf
 
 The board is available in two mounting styles: **Solder** (through-hole, thinner) and **Solderless** (female header, no soldering).
 
-Both styles are available in two editions: **Basic** (display + touch) and **Gamepad** (display + touch + buttons + joysticks + audio).
+Both styles are available in two variants: **Basic** (display + touch) and **Gamepad** (display + touch + buttons + joysticks + audio).
 
-All four variants use the same Gerber files but differ in component placement. See full details, feature tables, and images: [docs/README.md](../docs/README.md).
+For full details: [docs/README.md](../docs/README.md).
 
 ---
 
@@ -48,7 +48,6 @@ All four variants use the same Gerber files but differ in component placement. S
 
 - Added website link to top of board.
 - No functional changes.
-- Fully compatible with v1.0 software and firmware.
 
 ### PCB 1.0
 
