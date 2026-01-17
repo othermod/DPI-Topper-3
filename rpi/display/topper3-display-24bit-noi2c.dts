@@ -28,33 +28,13 @@
 	};
 
 	fragment@2 {
-		target = <&i2c1>;
-		__overlay__ {
-			status = "okay";
-			pinctrl-names = "default";
-			pinctrl-0 = <&i2c1_pins>;
-		};
-	};
-
-	fragment@3 {
-		target = <&gpio>;
-		__overlay__ {
-			i2c1_pins: i2c1_pins {
-				brcm,pins = <2 3>;
-				brcm,function = <BCM2835_FSEL_ALT0>;
-				brcm,pull = <BCM2835_PUD_UP>;
-			};
-		};
-	};
-
-	fragment@4 {
 		target-path = "/";
 		__overlay__ {
 			panel: panel {
 				compatible = "panel-dpi";
 				width-mm = <95>;
 				height-mm = <54>;
-				bus-format = <0x1013>; // MEDIA_BUS_FMT_BGR888_1X24
+				bus-format = <0x1013>;
 
 				panel-timing {
 					clock-frequency = <25000000>;
@@ -81,7 +61,7 @@
 		};
 	};
 
-	fragment@5 {
+	fragment@3 {
 		target = <&dpi>;
 		__overlay__ {
 			port {

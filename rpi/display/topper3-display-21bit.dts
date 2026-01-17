@@ -54,7 +54,7 @@
 				compatible = "panel-dpi";
 				width-mm = <95>;
 				height-mm = <54>;
-				bus-format = <0x1013>; // MEDIA_BUS_FMT_BGR888_1X24
+				bus-format = <0x1013>;
 
 				panel-timing {
 					clock-frequency = <25000000>;

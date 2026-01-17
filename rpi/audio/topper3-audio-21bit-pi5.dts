@@ -1,0 +1,64 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2712";
+
+	fragment@0 {
+		target = <&rp1_gpio>;
+		__overlay__ {
+			rp1_audio_out_12_only: rp1_audio_out_12_only {
+				function = "aaud";
+				pins = "gpio12";
+				bias-disable;
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&rp1_audio_out>;
+		frag0: __overlay__ {
+			pinctrl-0 = <&rp1_audio_out_12_only>;
+			pinctrl-names = "default";
+			status = "ok";
+		};
+	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			rp1_audio_out_codec: rp1_audio_out_codec@0 {
+				compatible = "linux,spdif-dit";
+				#sound-dai-cells = <0>;
+				status = "ok";
+			};
+
+			rp1_audio_out_simple_card@0 {
+				compatible = "simple-audio-card";
+				simple-audio-card,name = "RP1-Audio-Out";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				status = "ok";
+
+				simple-audio-card,dai-link@0 {
+					reg = <0>;
+					format = "left_j";
+					bitclock-master = <&sndcpu0>;
+					frame-master = <&sndcpu0>;
+
+					sndcpu0: cpu {
+						sound-dai = <&rp1_audio_out>;
+					};
+
+					codec {
+						sound-dai = <&rp1_audio_out_codec>;
+					};
+				};
+			};
+		};
+	};
+
+	__overrides__ {
+		swap_lr = <&frag0>, "swap_lr?";
+	};
+};
