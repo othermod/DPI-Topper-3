@@ -17,14 +17,12 @@ struct i2cStructure {
   uint8_t joyRY;
   union {
     struct Status {
-      uint8_t brightness : 3;  // Bits 0-2: Display brightness level (0-7)
-      bool reserved1 : 1;      // Bit 3: Reserved for future use
-      bool reserved2 : 1;      // Bit 4: Reserved for future use
-      bool reserved3 : 1;      // Bit 5: Reserved for future use
-      bool reserved4 : 1;      // Bit 6: Reserved for future use
-      bool reserved5 : 1;      // Bit 7: Reserved for future use
+      uint8_t brightness : 3;   // Bits 0-2: Display brightness level (0-7)
+      bool display_on : 1;      // Bit 3: 1 = Display On, 0 = Display Off
+      bool crc_active : 1;      // Bit 4: 1 = CRC Enabled, 0 = Disabled
+      bool reserved : 3;        // Bits 5-7: Reserved for future use
     } status;
-    uint8_t systemStatus;      // Access as full byte
+    uint8_t systemStatus;       // Access as full byte
   };
   uint16_t crc16;
 };
@@ -171,6 +169,7 @@ void disableDisplay() {
   }
 
   setPinLow(LCD_1W);
+  i2cdata.status.display_on = false;
 }
 
 void enableDisplay() {
@@ -213,6 +212,7 @@ void enableDisplay() {
 
     delay(20);
   }
+  i2cdata.status.display_on = true;
 }
 
 void readJoysticks() {
@@ -279,6 +279,7 @@ void processI2CCommand() {
 
     case I2C_CMD_CRC:
       state.crcEnabled = rxData[1];
+      i2cdata.status.crc_active = state.crcEnabled;
       break;
         case I2C_CMD_DDRB:
             EEPROM.update(EEPROM_DDRB, ~rxData[1]);
