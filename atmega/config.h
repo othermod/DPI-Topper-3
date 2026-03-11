@@ -53,13 +53,8 @@
 // I2C Command IDs
 #define I2C_CMD_BRIGHT 0x10
 #define I2C_CMD_CRC 0x20
-#define I2C_CMD_DDRB 0x30
-#define I2C_CMD_DDRD 0x40
-#define I2C_CMD_PORTB 0x50
-#define I2C_CMD_PORTD 0x60
-
-// New Command ID
-#define I2C_CMD_PIN_DATA 0x70
+#define I2C_CMD_GPIO_ALL 0x30
+#define I2C_CMD_PIN_DATA 0x40
 
 // Values for I2C_CMD_PIN_DATA
 #define I2C_PIN_DATA_DIRECTIONS 1

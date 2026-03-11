@@ -287,22 +287,16 @@ void processI2CCommand() {
       i2cdata.status.pin_data_mode = rxData[1];
       break;
 
-        case I2C_CMD_DDRB:
-            EEPROM.update(EEPROM_DDRB, ~rxData[1]);
-            DDRB = rxData[1];
-            break;
-        case I2C_CMD_DDRD:
-            EEPROM.update(EEPROM_DDRD, ~rxData[1]);
-            DDRD = rxData[1];
-            break;
-        case I2C_CMD_PORTB:
-            EEPROM.update(EEPROM_PORTB, rxData[1]);
-            PORTB = rxData[1];
-            break;
-        case I2C_CMD_PORTD:
-            EEPROM.update(EEPROM_PORTD, rxData[1]);
-            PORTD = rxData[1];
-            break;
+    case I2C_CMD_GPIO_ALL:
+      EEPROM.update(EEPROM_DDRB, ~rxData[1]);
+      EEPROM.update(EEPROM_DDRD, ~rxData[2]);
+      EEPROM.update(EEPROM_PORTB, rxData[3]);
+      EEPROM.update(EEPROM_PORTD, rxData[4]);
+      DDRB = rxData[1];
+      DDRD = rxData[2];
+      PORTB = rxData[3];
+      PORTD = rxData[4];
+      break;
   }
 }
 
