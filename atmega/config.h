@@ -58,6 +58,13 @@
 #define I2C_CMD_PORTB 0x50
 #define I2C_CMD_PORTD 0x60
 
+// New Command ID
+#define I2C_CMD_PIN_DATA 0x70
+
+// Values for I2C_CMD_PIN_DATA
+#define I2C_PIN_DATA_DIRECTIONS 1
+#define I2C_PIN_DATA_PINS       0
+
 // I2C Command Values
 #define I2C_BRIGHT_DISABLE 8  // Send this value with I2C_CMD_BRIGHT to disable display
 #define I2C_BRIGHT_ENABLE 9   // Send this value with I2C_CMD_BRIGHT to enable display at previous brightness
