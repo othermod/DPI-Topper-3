@@ -41,11 +41,11 @@ uint16_t crcTable[256];
 #define UPDATE_INTERVAL_REACHED currentTime - lastUpdateTime >= LOOP_MS
 
 void initGPIOs() {
-  // Set all pins as inputs with pull-ups enabled
-  DDRB = 0b00000000;  // All inputs
-  DDRD = 0b00000000;  // All inputs
-  PORTB = 0b11111111; // All pull-ups enabled
-  PORTD = 0b11111111; // All pull-ups enabled
+// Read pin directions and pull-ups from EEPROM
+  DDRB = ~EEPROM.read(EEPROM_DDRB);
+  DDRD = ~EEPROM.read(EEPROM_DDRD);
+  PORTB = EEPROM.read(EEPROM_PORTB);
+  PORTD = EEPROM.read(EEPROM_PORTD);
 
   /* Pin Configuration Summary:
      PORTB (0-7): Buttons 0-7 (IP, PU)
@@ -280,6 +280,22 @@ void processI2CCommand() {
     case I2C_CMD_CRC:
       state.crcEnabled = rxData[1];
       break;
+        case I2C_CMD_DDRB:
+            EEPROM.update(EEPROM_DDRB, ~rxData[1]);
+            DDRB = rxData[1];
+            break;
+        case I2C_CMD_DDRD:
+            EEPROM.update(EEPROM_DDRD, ~rxData[1]);
+            DDRD = rxData[1];
+            break;
+        case I2C_CMD_PORTB:
+            EEPROM.update(EEPROM_PORTB, rxData[1]);
+            PORTB = rxData[1];
+            break;
+        case I2C_CMD_PORTD:
+            EEPROM.update(EEPROM_PORTD, rxData[1]);
+            PORTD = rxData[1];
+            break;
   }
 }
 

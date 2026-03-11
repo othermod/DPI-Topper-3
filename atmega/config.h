@@ -9,6 +9,10 @@
 
 // EEPROM Addresses
 #define EEPROM_BRIGHT_ADDR 0
+#define EEPROM_DDRB 1
+#define EEPROM_PORTB 2
+#define EEPROM_DDRD 3
+#define EEPROM_PORTD 4
 
 // Brightness Configuration
 #define BRIGHTNESS_DEFAULT 4 // 0-7 are valid
@@ -47,8 +51,12 @@
 #define LCD_ADDR 0x72
 
 // I2C Command IDs
-#define I2C_CMD_BRIGHT 0x10  // Set brightness (0-7) or disable display (8)
-#define I2C_CMD_CRC 0x20     // Enable/disable CRC calculation
+#define I2C_CMD_BRIGHT 0x10
+#define I2C_CMD_CRC 0x20
+#define I2C_CMD_DDRB 0x30
+#define I2C_CMD_DDRD 0x40
+#define I2C_CMD_PORTB 0x50
+#define I2C_CMD_PORTD 0x60
 
 // I2C Command Values
 #define I2C_BRIGHT_DISABLE 8  // Send this value with I2C_CMD_BRIGHT to disable display
