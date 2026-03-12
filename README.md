@@ -18,24 +18,24 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 - 24-bit color display with brightness control
 - I2C capacitive touch panel support
 - Up to 5 available GPIOs (depending on features enabled)
-- 16 digital inputs and 4 analog inputs (Gamepad variant only)
+- 16 digital inputs/outputs and 4 analog inputs (Gamepad variant only)
 - Mono audio output (Gamepad variant only)
 
 ## Getting Started
 
-**Visit the [Documentation Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility**
+**Visit the [Topper 3 Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility**
 
 **Get a Board:**
-- [Buy pre-assembled](https://othermod.com) - Available in Basic and Gamepad editions, Solder and Solderless mounting styles
+- [Buy pre-assembled](https://othermod.com)
 - [Build your own](boards/) - PCB files and assembly instructions
 
 ## Community & Support
 
 - [Discord](https://discord.gg/V96c3JC) - Community discussions and support
 - [YouTube](https://youtube.com/othermod) - Video tutorials and updates
-- [Contact](https://linktr.ee/othermod) - Other ways to reach out
+- [Contact](https://linktr.ee/othermod) - Other ways to reach out or support the project
 
 ## License
 
-Hardware design: Creative Commons (CC BY-SA) 
-Software components: MIT License
+Hardware: Creative Commons (CC BY-SA)  
+Software: MIT License
