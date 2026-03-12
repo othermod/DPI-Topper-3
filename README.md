@@ -4,10 +4,10 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 
 <table>
   <tr>
-    <td><img src="docs/pics/main_image1.jpg" alt="Topper 3 Board"/></td>
-    <td><img src="docs/pics/main_image2.jpg" alt="Topper 3 on Pi 5"/></td>
-    <td><img src="docs/pics/main_image3.jpg" alt="Topper 3 on Pi Zero"/></td>
-    <td><img src="docs/pics/main_image4.jpg" alt="Topper 3 Touch"/></td>
+    <td><img src="main_image1.jpg" alt="Topper 3 Board"/></td>
+    <td><img src="main_image2.jpg" alt="Topper 3 on Pi 5"/></td>
+    <td><img src="main_image3.jpg" alt="Topper 3 on Pi Zero"/></td>
+    <td><img src="main_image4.jpg" alt="Topper 3 Touch"/></td>
   </tr>
 </table>
 
@@ -15,15 +15,15 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 ## Features
 
 - Compatible with [standard 40-pin LCD displays](lcds/) up to 800x480
-- 24-bit color display with 8-level brightness control
+- 24-bit color display with brightness control
 - I2C capacitive touch panel support
-- Up to 5 available GPIOs depending on features enabled
+- Up to 5 available GPIOs (depending on features enabled)
 - 16 digital inputs and 4 analog inputs (Gamepad variant only)
 - Mono audio output (Gamepad variant only)
 
 ## Getting Started
 
-**Visit the [Documentation](docs/README.md) page to learn about features, options, and compatibility**
+**Visit the [Documentation Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility**
 
 **Get a Board:**
 - [Buy pre-assembled](https://othermod.com) - Available in Basic and Gamepad editions, Solder and Solderless mounting styles
@@ -37,7 +37,5 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 
 ## License
 
-Hardware design: Creative Commons (CC BY-SA) - Attribution required  
+Hardware design: Creative Commons (CC BY-SA) 
 Software components: MIT License
-
-You're free to share and adapt the material. Hardware designs require appropriate credit.
