@@ -2,7 +2,7 @@
 
 ## Buy a Ready-Made Board
 
-Pre-assembled boards are available at [othermod.com](https://othermod.com). Perfect for those who want more of a plug-and-play experience. Choose from Solder or Solderless, Basic or Gamepad variants.
+Pre-assembled boards are available at [othermod.com](https://othermod.com). Perfect for those who want more of a plug-and-play experience. Choose from Soldered or Solderless mounting style, Display or Gamepad variants.
 
 ---
 
@@ -13,7 +13,7 @@ Pre-assembled boards are available at [othermod.com](https://othermod.com). Perf
 1. Navigate to the newest PCB folder (currently `1.0.1`).
 2. Download the Gerber files from the `pcb` subfolder.
 3. For assembly:
-   - Bill of Materials (BOM) is in the `bom` subfolder (gamepad and basic variants available).
+   - Bill of Materials (BOM) is in the `bom` subfolder (gamepad and display variants available).
    - Pick-and-Place file is in the `pnp` subfolder.
 
 ### Manufacturing Recommendations
@@ -28,17 +28,17 @@ Pre-assembled boards are available at [othermod.com](https://othermod.com). Perf
 
 ## Board Layout
 
-![Top View of DPI Topper 3 PCB](1.0.1/pcb/solder/gamepad.png)
+![Top View of DPI Topper 3 PCB](1.0.1/pcb/soldered/variant_gamepad_soldered.png)
 
 ---
 
 ## Board Variants
 
-The board is available in two mounting styles: **Solder** (through-hole, thinner) and **Solderless** (female header, no soldering).
+The board is available in two mounting styles: **Soldered** (through-hole, thinner) and **Solderless** (female header, no soldering).
 
-Both styles are available in two variants: **Basic** (display + touch) and **Gamepad** (display + touch + buttons + joysticks + audio).
+Both styles are available in two variants:  **Display** (display + touch) and **Gamepad** (display + touch + buttons + joysticks + audio).
 
-For full details: [docs/README.md](../docs/README.md).
+For full details, visit the [Topper 3 Wiki](https://github.com/othermod/DPI-Topper-3/wiki).
 
 ---
 
