@@ -264,6 +264,60 @@ fail:
     return ret;
 }
 
+static int backup_firmware(const char *path, uint8_t app_pages)
+{
+    FILE    *f;
+    uint8_t  buf[SPM_PAGESIZE];
+    int      page;
+
+    f = fopen(path, "w");
+    if (!f) {
+        fprintf(stderr, "Failed to open backup file %s: %s\n", path, strerror(errno));
+        return -1;
+    }
+
+    printf("Backing up %d page(s) to %s...\n", app_pages, path);
+
+    for (page = 0; page < app_pages; page++) {
+        uint16_t addr = (uint16_t)page * SPM_PAGESIZE;
+        uint8_t  checksum;
+        int      i;
+
+        if (bl_set_page((uint8_t)page) < 0) {
+            fprintf(stderr, "Failed to set address for page %d.\n", page);
+            fclose(f);
+            return -1;
+        }
+        if (bl_read_page(buf, SPM_PAGESIZE) < 0) {
+            fprintf(stderr, "Failed to read page %d.\n", page);
+            fclose(f);
+            return -1;
+        }
+
+        /* Intel HEX data record: :LLAAAATT[DD...]CC */
+        checksum = SPM_PAGESIZE
+                 + ((addr >> 8) & 0xFF)
+                 + (addr & 0xFF)
+                 + 0x00; /* record type */
+        for (i = 0; i < SPM_PAGESIZE; i++)
+            checksum += buf[i];
+        checksum = (~checksum + 1) & 0xFF;
+
+        fprintf(f, ":%02X%04X00", SPM_PAGESIZE, addr);
+        for (i = 0; i < SPM_PAGESIZE; i++)
+            fprintf(f, "%02X", buf[i]);
+        fprintf(f, "%02X\n", checksum);
+
+        printf("  [%d/%d] page %d read\n", page + 1, app_pages, page);
+    }
+
+    fprintf(f, ":00000001FF\n"); /* EOF record */
+    fclose(f);
+    printf("Backup complete.\n\n");
+    return 0;
+}
+
+
 static int flash_image(const flash_image_t *image)
 {
     int page, written = 0;
@@ -344,6 +398,7 @@ static void usage(const char *prog)
         "Options:\n"
         "  -d <device>    I2C device node     (default: /dev/i2c-1)\n"
         "  -r <hexbytes>  App reset command   (default: 5000)\n"
+        "  -b <file>      Backup current firmware to HEX file before flashing\n"
         "  -n             Skip verify and finalize\n"
         "  -h             Show this help\n"
         "\n"
@@ -380,6 +435,7 @@ int main(int argc, char *argv[])
 {
     const char   *device      = "/dev/i2c-1";
     const char   *hex_file    = NULL;
+    const char   *backup_file = NULL;
     int           skip_verify = 0;
     int           opt, ret    = 0;
     uint8_t       sig0, sig1, sig2, version, app_pages;
@@ -387,10 +443,11 @@ int main(int argc, char *argv[])
     size_t        reset_cmd_len                = DEFAULT_RESET_CMD_LEN;
     flash_image_t image;
 
-    while ((opt = getopt(argc, argv, "d:r:nh")) != -1) {
+    while ((opt = getopt(argc, argv, "d:r:b:nh")) != -1) {
         switch (opt) {
             case 'd': device = optarg;                                                       break;
             case 'r': if (parse_reset_cmd(optarg, reset_cmd, &reset_cmd_len) < 0) return 1; break;
+            case 'b': backup_file = optarg;                                                  break;
             case 'n': skip_verify = 1;                                                       break;
             case 'h': usage(argv[0]); return 0;
             default:  usage(argv[0]); return 1;
@@ -448,6 +505,11 @@ int main(int argc, char *argv[])
             ret = 1;
             goto done;
         }
+    }
+
+    if (backup_file) {
+        printf("--- Backup ---\n");
+        if (backup_firmware(backup_file, app_pages) < 0) { ret = 1; goto done; }
     }
 
     printf("--- Flash ---\n");
