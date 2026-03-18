@@ -55,6 +55,7 @@
 #define I2C_CMD_CRC 0x20
 #define I2C_CMD_GPIO_ALL 0x30
 #define I2C_CMD_PIN_DATA 0x40
+#define I2C_CMD_RESET 0x50
 
 // Values for I2C_CMD_PIN_DATA
 #define I2C_PIN_DATA_DIRECTIONS 1

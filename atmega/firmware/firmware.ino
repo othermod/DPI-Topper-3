@@ -1,5 +1,7 @@
+#include <Arduino.h>
 #include <Wire.h>
 #include <EEPROM.h>
+#include <avr/wdt.h>
 #include "config.h"
 
 struct SystemState {
@@ -33,6 +35,7 @@ SystemState state;
 i2cStructure i2cdata;
 volatile byte rxData[4];
 volatile bool pendingCommand = false;
+volatile bool pendingReset = false;
 unsigned long lastUpdateTime = 0;
 uint16_t crcTable[256];
 
@@ -287,6 +290,10 @@ void processI2CCommand() {
       i2cdata.status.pin_data_mode = rxData[1];
       break;
 
+    case I2C_CMD_RESET:
+      pendingReset = true;
+      break;
+
     case I2C_CMD_GPIO_ALL:
       EEPROM.update(EEPROM_DDRB, ~rxData[1]);
       EEPROM.update(EEPROM_DDRD, ~rxData[2]);
@@ -380,6 +387,11 @@ void setup() {
 }
 
 void loop() {
+  if (pendingReset) {
+    wdt_enable(WDTO_15MS);
+    while (1);
+  }
+
   checkForIncomingI2CCommand();  // Process any pending I2C commands immediately
 
   unsigned long currentTime = millis();
