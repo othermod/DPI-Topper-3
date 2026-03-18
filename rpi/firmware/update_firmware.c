@@ -308,12 +308,13 @@ static int backup_firmware(const char *path, uint8_t app_pages)
             fprintf(f, "%02X", buf[i]);
         fprintf(f, "%02X\n", checksum);
 
-        printf("  [%d/%d] page %d read\n", page + 1, app_pages, page);
+        printf("\r  [%d/%d] page %d read", page + 1, app_pages, page);
+        fflush(stdout);
     }
 
     fprintf(f, ":00000001FF\n"); /* EOF record */
     fclose(f);
-    printf("Backup complete.\n\n");
+    printf("\nBackup complete.\n\n");
     return 0;
 }
 
@@ -337,10 +338,11 @@ static int flash_image(const flash_image_t *image)
             return -1;
         }
 
-        printf("  [%d/%d] page %d written\n", ++written, image->num_pages, page);
+        printf("\r  [%d/%d] page %d written", ++written, image->num_pages, page);
+        fflush(stdout);
     }
 
-    printf("Flashing complete.\n");
+    printf("\nFlashing complete.\n");
     return 0;
 }
 
@@ -372,11 +374,12 @@ static int verify_image(const flash_image_t *image)
                 page_errs++;
 
         if (page_errs > 0) {
-            printf("  [%d/%d] page %d MISMATCH (%d byte(s))\n",
+            printf("\r  [%d/%d] page %d MISMATCH (%d byte(s))\n",
                    ++verified, image->num_pages, page, page_errs);
             total_errs += page_errs;
         } else {
-            printf("  [%d/%d] page %d OK\n", ++verified, image->num_pages, page);
+            printf("\r  [%d/%d] page %d OK", ++verified, image->num_pages, page);
+            fflush(stdout);
         }
     }
 
@@ -386,7 +389,7 @@ static int verify_image(const flash_image_t *image)
         return -1;
     }
 
-    printf("Verification successful.\n");
+    printf("\nVerification successful.\n");
     return 0;
 }
 
