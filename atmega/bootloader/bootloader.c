@@ -209,11 +209,12 @@ static void twi_handle(void)
                 case CMD_READ_INFO:
                     switch (byte_cnt)
                     {
-                        case 0: tx_data = SIGNATURE_0;        break;
-                        case 1: tx_data = SIGNATURE_1;        break;
-                        case 2: tx_data = SIGNATURE_2;        break;
-                        case 3: tx_data = BOOTLOADER_VERSION; break;
-                        default: tx_data = 0xFF;              break;
+                        case 0: tx_data = SIGNATURE_0;                     break;
+                        case 1: tx_data = SIGNATURE_1;                     break;
+                        case 2: tx_data = SIGNATURE_2;                     break;
+                        case 3: tx_data = BOOTLOADER_VERSION;              break;
+                        case 4: tx_data = BOOTLOADER_START / SPM_PAGESIZE; break;
+                        default: tx_data = 0xFF;                           break;
                     }
                     break;
 

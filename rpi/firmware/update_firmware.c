@@ -105,16 +105,17 @@ static int bl_abort_timeout(void)
     return i2c_write(BL_ADDR, &cmd, 1);
 }
 
-static int bl_read_info(uint8_t *sig0, uint8_t *sig1, uint8_t *sig2, uint8_t *version)
+static int bl_read_info(uint8_t *sig0, uint8_t *sig1, uint8_t *sig2, uint8_t *version, uint8_t *app_pages)
 {
     uint8_t cmd = CMD_READ_INFO;
-    uint8_t buf[4];
-    if (i2c_write_then_read(BL_ADDR, &cmd, 1, buf, 4) < 0)
+    uint8_t buf[5];
+    if (i2c_write_then_read(BL_ADDR, &cmd, 1, buf, 5) < 0)
         return -1;
-    *sig0    = buf[0];
-    *sig1    = buf[1];
-    *sig2    = buf[2];
-    *version = buf[3];
+    *sig0      = buf[0];
+    *sig1      = buf[1];
+    *sig2      = buf[2];
+    *version   = buf[3];
+    *app_pages = buf[4];
     return 0;
 }
 
@@ -381,7 +382,7 @@ int main(int argc, char *argv[])
     const char   *hex_file    = NULL;
     int           skip_verify = 0;
     int           opt, ret    = 0;
-    uint8_t       sig0, sig1, sig2, version;
+    uint8_t       sig0, sig1, sig2, version, app_pages;
     uint8_t       reset_cmd[MAX_RESET_CMD_LEN] = DEFAULT_RESET_CMD;
     size_t        reset_cmd_len                = DEFAULT_RESET_CMD_LEN;
     flash_image_t image;
@@ -422,7 +423,7 @@ int main(int argc, char *argv[])
     }
     printf("Boot timeout aborted.\n");
 
-    if (bl_read_info(&sig0, &sig1, &sig2, &version) < 0) {
+    if (bl_read_info(&sig0, &sig1, &sig2, &version, &app_pages) < 0) {
         fprintf(stderr, "Failed to read chip info.\n");
         ret = 1;
         goto done;
@@ -434,10 +435,20 @@ int main(int argc, char *argv[])
         ret = 1;
         goto done;
     }
-    printf("Bootloader version: 0x%02X\n\n", version);
+    printf("Bootloader version: 0x%02X\n", version);
     if (version != EXPECTED_BL_VERSION)
         fprintf(stderr, "Warning: unexpected bootloader version 0x%02X (expected 0x%02X). "
-                        "Proceeding anyway.\n\n", version, EXPECTED_BL_VERSION);
+                        "Proceeding anyway.\n", version, EXPECTED_BL_VERSION);
+    printf("App flash: %d pages available\n\n", app_pages);
+
+    for (int i = app_pages; i < NUM_PAGES; i++) {
+        if (image.page_has_data[i]) {
+            fprintf(stderr, "Error: firmware image exceeds available flash "
+                            "(data in page %d, max page is %d).\n", i, app_pages - 1);
+            ret = 1;
+            goto done;
+        }
+    }
 
     printf("--- Flash ---\n");
     if (flash_image(&image) < 0) { ret = 1; goto done; }
