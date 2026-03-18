@@ -10,7 +10,7 @@
 #include <linux/i2c.h>
 
 #define BL_ADDR                 0x29
-#define APP_ADDR                0x30
+#define FW_ADDR                 0x30
 
 #define CMD_ABORT_TIMEOUT       0x00
 #define CMD_READ_INFO           0x01
@@ -105,7 +105,7 @@ static int bl_abort_timeout(void)
     return i2c_write(BL_ADDR, &cmd, 1);
 }
 
-static int bl_read_info(uint8_t *sig0, uint8_t *sig1, uint8_t *sig2, uint8_t *version, uint8_t *app_pages)
+static int bl_read_info(uint8_t *sig0, uint8_t *sig1, uint8_t *sig2, uint8_t *version, uint8_t *fw_pages)
 {
     uint8_t cmd = CMD_READ_INFO;
     uint8_t buf[5];
@@ -115,7 +115,7 @@ static int bl_read_info(uint8_t *sig0, uint8_t *sig1, uint8_t *sig2, uint8_t *ve
     *sig1      = buf[1];
     *sig2      = buf[2];
     *version   = buf[3];
-    *app_pages = buf[4];
+    *fw_pages = buf[4];
     return 0;
 }
 
@@ -158,14 +158,14 @@ static int enter_bootloader(const uint8_t *reset_cmd, size_t reset_cmd_len)
         return 0;
     }
 
-    if (i2c_probe(APP_ADDR) == 0) {
-        printf("App running at 0x%02X. Sending reset command...\n", APP_ADDR);
-        if (i2c_write(APP_ADDR, reset_cmd, reset_cmd_len) < 0) {
-            fprintf(stderr, "Failed to send reset command to app.\n");
+    if (i2c_probe(FW_ADDR) == 0) {
+        printf("Firmware running at 0x%02X. Sending reset command...\n", FW_ADDR);
+        if (i2c_write(FW_ADDR, reset_cmd, reset_cmd_len) < 0) {
+            fprintf(stderr, "Failed to send reset command to firmware.\n");
             return -1;
         }
     } else {
-        printf("No device found at 0x%02X or 0x%02X.\n", BL_ADDR, APP_ADDR);
+        printf("No device found at 0x%02X or 0x%02X.\n", BL_ADDR, FW_ADDR);
     }
 
     printf("Waiting for bootloader");
@@ -264,7 +264,7 @@ fail:
     return ret;
 }
 
-static int backup_firmware(const char *path, uint8_t app_pages)
+static int backup_firmware(const char *path, uint8_t fw_pages)
 {
     FILE    *f;
     uint8_t  buf[SPM_PAGESIZE];
@@ -276,9 +276,9 @@ static int backup_firmware(const char *path, uint8_t app_pages)
         return -1;
     }
 
-    printf("Backing up %d page(s) to %s...\n", app_pages, path);
+    printf("Backing up %d page(s) to %s...\n", fw_pages, path);
 
-    for (page = 0; page < app_pages; page++) {
+    for (page = 0; page < fw_pages; page++) {
         uint16_t addr = (uint16_t)page * SPM_PAGESIZE;
         uint8_t  checksum;
         int      i;
@@ -308,7 +308,7 @@ static int backup_firmware(const char *path, uint8_t app_pages)
             fprintf(f, "%02X", buf[i]);
         fprintf(f, "%02X\n", checksum);
 
-        printf("\r  [%d/%d] page %d read", page + 1, app_pages, page);
+        printf("\r  [%d/%d] read", page + 1, fw_pages);
         fflush(stdout);
     }
 
@@ -338,7 +338,7 @@ static int flash_image(const flash_image_t *image)
             return -1;
         }
 
-        printf("\r  [%d/%d] page %d written", ++written, image->num_pages, page);
+        printf("\r  [%d/%d] written", ++written, image->num_pages);
         fflush(stdout);
     }
 
@@ -378,7 +378,7 @@ static int verify_image(const flash_image_t *image)
                    ++verified, image->num_pages, page, page_errs);
             total_errs += page_errs;
         } else {
-            printf("\r  [%d/%d] page %d OK", ++verified, image->num_pages, page);
+            printf("\r  [%d/%d] OK", ++verified, image->num_pages);
             fflush(stdout);
         }
     }
@@ -400,7 +400,7 @@ static void usage(const char *prog)
         "\n"
         "Options:\n"
         "  -d <device>    I2C device node     (default: /dev/i2c-1)\n"
-        "  -r <hexbytes>  App reset command   (default: 5000)\n"
+        "  -r <hexbytes>  Firmware reset command   (default: 5000)\n"
         "  -b <file>      Backup current firmware to HEX file before flashing\n"
         "  -n             Skip verify and finalize\n"
         "  -h             Show this help\n"
@@ -441,7 +441,7 @@ int main(int argc, char *argv[])
     const char   *backup_file = NULL;
     int           skip_verify = 0;
     int           opt, ret    = 0;
-    uint8_t       sig0, sig1, sig2, version, app_pages;
+    uint8_t       sig0, sig1, sig2, version, fw_pages;
     uint8_t       reset_cmd[MAX_RESET_CMD_LEN] = DEFAULT_RESET_CMD;
     size_t        reset_cmd_len                = DEFAULT_RESET_CMD_LEN;
     flash_image_t image;
@@ -465,10 +465,9 @@ int main(int argc, char *argv[])
 
     hex_file = argv[optind];
 
-    printf("Parsing %s...\n", hex_file);
+    printf("Parsing %s...\n\n", hex_file);
     if (parse_hex_file(hex_file, &image) < 0)
         return 1;
-    printf("Parsed %u page(s) with data.\n\n", image.num_pages);
 
     if (i2c_open(device) < 0)
         return 1;
@@ -481,9 +480,9 @@ int main(int argc, char *argv[])
         ret = 1;
         goto done;
     }
-    printf("Boot timeout aborted.\n");
+    printf("Keeping Atmega in bootloader mode for flashing.\n");
 
-    if (bl_read_info(&sig0, &sig1, &sig2, &version, &app_pages) < 0) {
+    if (bl_read_info(&sig0, &sig1, &sig2, &version, &fw_pages) < 0) {
         fprintf(stderr, "Failed to read chip info.\n");
         ret = 1;
         goto done;
@@ -499,12 +498,13 @@ int main(int argc, char *argv[])
     if (version != EXPECTED_BL_VERSION)
         fprintf(stderr, "Warning: unexpected bootloader version 0x%02X (expected 0x%02X). "
                         "Proceeding anyway.\n", version, EXPECTED_BL_VERSION);
-    printf("App flash: %d pages available\n\n", app_pages);
+    printf("Firmware flash: %d pages available\n", fw_pages);
+    printf("Preparing to flash %u pages with data.\n\n", image.num_pages);
 
-    for (int i = app_pages; i < NUM_PAGES; i++) {
+    for (int i = fw_pages; i < NUM_PAGES; i++) {
         if (image.page_has_data[i]) {
             fprintf(stderr, "Error: firmware image exceeds available flash "
-                            "(data in page %d, max page is %d).\n", i, app_pages - 1);
+                            "(data in page %d, max page is %d).\n", i, fw_pages - 1);
             ret = 1;
             goto done;
         }
@@ -512,7 +512,7 @@ int main(int argc, char *argv[])
 
     if (backup_file) {
         printf("--- Backup ---\n");
-        if (backup_firmware(backup_file, app_pages) < 0) { ret = 1; goto done; }
+        if (backup_firmware(backup_file, fw_pages) < 0) { ret = 1; goto done; }
     }
 
     printf("--- Flash ---\n");
@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
         ret = 1;
         goto done;
     }
-    printf("Finalize sent. Bootloader is writing metadata and launching app.\n");
+    printf("Finalize sent. Bootloader is writing metadata and launching firmware.\n");
 
 done:
     close(i2c_fd);
