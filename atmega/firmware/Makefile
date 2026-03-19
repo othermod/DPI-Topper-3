@@ -29,8 +29,6 @@ SIZE    = avr-size
 AVRDUDE   = sudo avrdude
 DUDEFLAGS = -c linuxgpio -p m8
 
-BOOT_START = 7168
-
 CORE_DIR    = $(ARDUINO_AVR)/cores/arduino
 WIRE_DIR    = $(ARDUINO_AVR)/libraries/Wire/src
 VARIANT_DIR = $(ARDUINO_AVR)/variants/standard
@@ -53,7 +51,7 @@ CORE_OBJS = $(CORE_DIR)/wiring.o \
 WIRE_OBJS = $(WIRE_DIR)/Wire.o \
             $(WIRE_DIR)/utility/twi.o
 
-.PHONY: all clean install
+.PHONY: all clean flash
 
 all: $(TARGET).hex
 
@@ -76,17 +74,11 @@ $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -O ihex -R .eeprom $< $@
 	@PROGSIZE=$$($(SIZE) $< | tail -1 | awk '{print $$1}'); \
 	 DATASIZE=$$($(SIZE) $< | tail -1 | awk '{print $$2+$$3}'); \
-	 PROG_PCT=$$(($$PROGSIZE * 100 / $(BOOT_START))); \
-	 DATA_PCT=$$(($$DATASIZE * 100 / 1024)); \
-	 PROG_FREE=$$(($(BOOT_START) - $$PROGSIZE)); \
 	 DATA_FREE=$$((1024 - $$DATASIZE)); \
-	 BOOT_SIZE=$$((8192 - $(BOOT_START))); \
-	 echo "Flash:   8192 bytes total"; \
-	 echo "         $$BOOT_SIZE bytes used for bootloader"; \
-	 echo "         $$PROGSIZE bytes used of $(BOOT_START) for firmware [$$PROG_FREE bytes free]"; \
+	 echo "Flash:   $$PROGSIZE bytes used of 8192 total (bootloader requires between 512 and 4096 bytes; firmware and bootloader must fit within 8192 bytes)"; \
 	 echo "RAM:     $$DATASIZE bytes used of 1024 [$$DATA_FREE bytes free]"
 
-install: $(TARGET).hex
+flash: $(TARGET).hex
 	$(AVRDUDE) $(DUDEFLAGS) -U flash:w:$<:i
 
 clean:

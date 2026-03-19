@@ -5,6 +5,9 @@ F_CPU      = 8000000UL
 # ATmega8: 512 word bootloader section starts at 0x1C00 (byte address)
 BOOT_START = 0x1C00
 
+LFUSE      = 0xE4
+HFUSE      = 0xDA
+
 AVRDUDE    = sudo avrdude
 DUDEFLAGS  = -c linuxgpio -p m8
 
@@ -30,7 +33,7 @@ LDFLAGS    = -mmcu=$(MCU) \
              -Wl,--gc-sections \
              -Wl,--relax
 
-.PHONY: all clean install
+.PHONY: all clean flash
 
 all: $(TARGET).hex
 
@@ -46,8 +49,22 @@ $(TARGET).hex: $(TARGET).elf
 	 echo "Flash:   $$PROGSIZE bytes used of 1024 for bootloader [$$PROG_FREE bytes free]"; \
 	 echo "RAM:     $$DATASIZE bytes used of 1024 [$$DATA_FREE bytes free]"
 
-install: $(TARGET).hex
-	$(AVRDUDE) $(DUDEFLAGS) -U flash:w:$(TARGET).hex:i
+flash: $(TARGET).hex
+	@OUTPUT=$$($(AVRDUDE) $(DUDEFLAGS) \
+		-U flash:w:$(TARGET).hex:i 2>&1); \
+	echo "$$OUTPUT"; \
+	LFUSE_READ=$$(echo "$$OUTPUT" | grep -oP '(?<=L:)[0-9A-Fa-f]+' | tr '[:upper:]' '[:lower:]'); \
+	HFUSE_READ=$$(echo "$$OUTPUT" | grep -oP '(?<=H:)[0-9A-Fa-f]+' | tr '[:upper:]' '[:lower:]'); \
+	LFUSE_EXP=$$(echo "$(LFUSE)" | sed 's/0x//i' | tr '[:upper:]' '[:lower:]'); \
+	HFUSE_EXP=$$(echo "$(HFUSE)" | sed 's/0x//i' | tr '[:upper:]' '[:lower:]'); \
+	if [ "$$LFUSE_READ" != "$$LFUSE_EXP" ] || [ "$$HFUSE_READ" != "$$HFUSE_EXP" ]; then \
+		echo "Fuses incorrect, programming..."; \
+		$(AVRDUDE) $(DUDEFLAGS) \
+			-U lfuse:w:$(LFUSE):m \
+			-U hfuse:w:$(HFUSE):m; \
+	else \
+		echo "Fuses OK"; \
+	fi
 
 clean:
 	rm -f $(TARGET).elf $(TARGET).hex

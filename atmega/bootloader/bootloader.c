@@ -52,8 +52,9 @@
 #define TWI_CLEAR_ACK(ctrl)         ((ctrl) &= ~(1<<TWEA))
 #define TWI_SET_ACK(ctrl)           ((ctrl) |=  (1<<TWEA))
 
-static uint8_t  bl_mode       = BL_RUNNING;
-static uint8_t  timeout_ticks = TIMER_MSEC2IRQCNT(TIMEOUT_MS);
+static uint8_t  bl_mode        = BL_RUNNING;
+static uint8_t  timeout_ticks  = TIMER_MSEC2IRQCNT(TIMEOUT_MS);
+static uint8_t  button_override = 0;
 
 static uint8_t  page_buf[SPM_PAGESIZE];
 static uint16_t flash_addr;
@@ -252,7 +253,10 @@ static void timer_tick(void)
 {
     TCNT0 = TIMER_RELOAD_VALUE;
 
-    /* decrement until 1, then handle expiry on the transition to 0 */
+    /* if button was held at boot but has since been released, disqualify */
+    if (button_override && (PINC & (1<<PC2)))
+        button_override = 0;
+
     if (timeout_ticks > 1)
     {
         timeout_ticks--;
@@ -261,10 +265,10 @@ static void timer_tick(void)
     {
         timeout_ticks = 0;
 
-        if (eeprom_read_word(EE_CHECKSUM_ADDR) == compute_checksum())
-            bl_mode = BL_BOOT_APP;
+        if (button_override || eeprom_read_word(EE_CHECKSUM_ADDR) != compute_checksum())
+            PORTC |= (1<<PC3);  /* hold active — button override or invalid firmware */
         else
-            PORTC |= (1<<PC3);  /* invalid firmware — signal and wait for programmer */
+            bl_mode = BL_BOOT_APP;
     }
 }
 
@@ -286,6 +290,11 @@ int main(void)
     /* PC3: output, initially low — driven high when bootloader holds active */
     DDRC  |= (1<<PC3);
     PORTC &= ~(1<<PC3);
+
+    /* PC2: input with pull-up — held at power-on forces bootloader to stay active */
+    DDRC  &= ~(1<<PC2);
+    PORTC |=  (1<<PC2);
+    button_override = !(PINC & (1<<PC2));
 
     /* Timer0: F_CPU / 1024 */
     TCCR0 = (1<<CS02) | (1<<CS00);
