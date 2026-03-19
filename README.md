@@ -1,6 +1,6 @@
 # Raspberry Pi DPI Topper 3
 
-An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display output, brightness control, touchscreen input, analog inputs, digital inputs, and audio.
+An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display output, brightness control, touchscreen input, analog inputs, configurable GPIO (inputs/outputs), and audio. Suitable for gaming devices, control panels, information displays, IoT dashboards, and custom HMI applications.
 
 <table>
   <tr>
@@ -10,7 +10,6 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
     <td><img src="main_image4.jpg" alt="Topper 3 Touch"/></td>
   </tr>
 </table>
-
 
 ## Features
 
@@ -23,11 +22,11 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 
 ## Getting Started
 
-**Visit the [Topper 3 Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility**
+Visit the [Topper 3 Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility
 
 **Get a Board:**
 - [Buy pre-assembled](https://othermod.com)
-- [Build your own](boards/) - PCB files and assembly instructions
+- [Build your own](boards/)
 
 ## Community & Support
 
