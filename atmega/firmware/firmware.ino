@@ -17,16 +17,13 @@ struct i2cStructure {
   uint8_t joyLY;
   uint8_t joyRX;
   uint8_t joyRY;
-  union {
-    struct Status {
-      uint8_t brightness : 3;   // Bits 0-2: Display brightness level (0-7)
-      bool display_on : 1;      // Bit 3: 1 = Display On, 0 = Display Off
-      bool crc_active : 1;      // Bit 4: 1 = CRC Enabled, 0 = Disabled
-      bool pin_data_mode : 1;   // Bit 5: 1 = Return Directions, 0 = Return Pins
-      bool reserved : 2;        // Bits 6-7: Reserved for future use
-    } status;
-    uint8_t systemStatus;       // Access as full byte
-  };
+  struct {
+    uint8_t brightness : 3;   // Bits 0-2: Display brightness level (0-7)
+    bool display_on : 1;      // Bit 3: 1 = Display On, 0 = Display Off
+    bool crc_active : 1;      // Bit 4: 1 = CRC Enabled, 0 = Disabled
+    bool pin_data_mode : 1;   // Bit 5: 1 = Return Directions, 0 = Return Pins
+    bool reserved : 2;        // Bits 6-7: Reserved for future use
+  } status;
   uint16_t crc16;
 };
 
@@ -112,7 +109,7 @@ void setBrightness() {
     return;
   }
 
-  byte bytesToSend[] = {LCD_ADDR, i2cdata.status.brightness * 4 + 1};
+  byte bytesToSend[] = {LCD_ADDR, (byte)(i2cdata.status.brightness * 4 + 1)};
 
   noInterrupts();
   for (int byte = 0; byte < 2; byte++) {
