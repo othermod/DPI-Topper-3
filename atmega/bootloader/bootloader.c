@@ -5,7 +5,6 @@
 
 #include <avr/io.h>
 #include <avr/boot.h>
-#include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 
 #define BOOTLOADER_VERSION          0x01
@@ -19,9 +18,6 @@
 #define TIMER_MSEC2TICKS(x)         ((x * F_CPU) / (TIMER_DIVISOR * 1000ULL))
 #define TIMER_MSEC2IRQCNT(x)        (x / TIMER_IRQFREQ_MS)
 #define TIMER_RELOAD_VALUE          (0xFF - TIMER_MSEC2TICKS(TIMER_IRQFREQ_MS))
-
-/* firmware checksum stored in the last 2 bytes of EEPROM */
-#define EE_CHECKSUM_ADDR            ((uint16_t *)(E2END - 1))
 
 /* I2C protocol commands */
 #define CMD_ABORT_TIMEOUT           0x00
@@ -46,7 +42,6 @@
 /* bootloader run modes */
 #define BL_RUNNING                  0x00
 #define BL_BOOT_APP                 0x01
-#define BL_FINALIZE                 0x02
 
 /* TWI ACK control helpers */
 #define TWI_CLEAR_ACK(ctrl)         ((ctrl) &= ~(1<<TWEA))
@@ -60,19 +55,15 @@ static uint8_t  page_buf[SPM_PAGESIZE];
 static uint16_t flash_addr;
 
 
-static uint16_t compute_checksum(void)
+static uint8_t flash_is_blank(void)
 {
-    uint8_t  sum1 = 0, sum2 = 0;
     uint16_t i;
-
     for (i = 0; i < BOOTLOADER_START; i++)
     {
-        sum1 += pgm_read_byte_near(i);
-        sum2 += sum1;
+        if (pgm_read_byte_near(i) != 0xFF)
+            return 0;
     }
-
-    /* Fletcher-16: sum2 in high byte, sum1 in low byte */
-    return ((uint16_t)sum2 << 8) | sum1;
+    return 1;
 }
 
 
@@ -130,7 +121,7 @@ static void twi_handle(void)
                         break;
 
                     case CMD_FINALIZE:
-                        bl_mode = BL_FINALIZE;
+                        bl_mode = BL_BOOT_APP;
                         break;
 
                     /* valid commands; no immediate action on receipt of command byte */
@@ -265,8 +256,8 @@ static void timer_tick(void)
     {
         timeout_ticks = 0;
 
-        if (button_override || eeprom_read_word(EE_CHECKSUM_ADDR) != compute_checksum())
-            PORTC |= (1<<PC3);  /* hold active — button override or invalid firmware */
+        if (button_override || flash_is_blank())
+            PORTC |= (1<<PC3);  /* hold active — button override or blank firmware */
         else
             bl_mode = BL_BOOT_APP;
     }
@@ -317,9 +308,6 @@ int main(void)
 
     TWCR  = 0x00;
     TCCR0 = 0x00;
-
-    if (bl_mode == BL_FINALIZE)
-        eeprom_write_word(EE_CHECKSUM_ADDR, compute_checksum());
 
     jump_to_app();
 }
