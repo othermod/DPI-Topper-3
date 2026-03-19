@@ -21,8 +21,9 @@ struct i2cStructure {
     uint8_t brightness : 3;   // Bits 0-2: Display brightness level (0-7)
     bool display_on : 1;      // Bit 3: 1 = Display On, 0 = Display Off
     bool crc_active : 1;      // Bit 4: 1 = CRC Enabled, 0 = Disabled
-    bool pin_data_mode : 1;   // Bit 5: 1 = Return Directions, 0 = Return Pins
-    bool reserved : 2;        // Bits 6-7: Reserved for future use
+    bool ddr_modified : 1;    // Bit 5: 1 = Any pin direction changed from default (0)
+    bool port_modified : 1;   // Bit 6: 1 = Any PORT value changed from default (0)
+    bool reserved : 1;        // Bit 7: Reserved for future use
   } status;
   uint16_t crc16;
 };
@@ -255,6 +256,11 @@ void checkDisplayButton() {
   }
 }
 
+void updateGPIOStatusBits() {
+  i2cdata.status.ddr_modified  = (DDRB | DDRD) != 0;
+  i2cdata.status.port_modified = (PORTB != 0xFF) || (PORTD != 0xFF);
+}
+
 void processI2CCommand() {
   switch (rxData[0]) {
     case I2C_CMD_BRIGHT:
@@ -283,14 +289,6 @@ void processI2CCommand() {
       i2cdata.status.crc_active = state.crcEnabled;
       break;
 
-    case I2C_CMD_PIN_DATA:
-      i2cdata.status.pin_data_mode = rxData[1];
-      break;
-
-    case I2C_CMD_RESET:
-      pendingReset = true;
-      break;
-
     case I2C_CMD_GPIO_ALL:
       EEPROM.update(EEPROM_DDRB, ~rxData[1]);
       EEPROM.update(EEPROM_DDRD, ~rxData[2]);
@@ -300,20 +298,18 @@ void processI2CCommand() {
       DDRD = rxData[2];
       PORTB = rxData[3];
       PORTD = rxData[4];
+      updateGPIOStatusBits();
+      break;
+
+    case I2C_CMD_RESET:
+      pendingReset = true;
       break;
   }
 }
 
 void readButtons() {
-  // Read and invert in one operation
-  uint16_t pressed;
+  uint16_t pressed = ~((PIND << 8) | PINB);
   uint16_t button_state = 0;
-
-  if (i2cdata.status.pin_data_mode == I2C_PIN_DATA_DIRECTIONS) {
-    pressed = ((uint16_t)DDRD << 8) | DDRB;
-  } else if (i2cdata.status.pin_data_mode == I2C_PIN_DATA_PINS) {
-    pressed = ~((PIND << 8) | PINB);
-  }
 
   for (uint8_t i = 0; i < 16; i++) {
     // Check if currently pressed
@@ -376,6 +372,7 @@ void setup() {
   state.crcEnabled = true;  // CRC enabled by default
 
   readEEPROM();
+  updateGPIOStatusBits();
   enableDisplay();
 
   Wire.begin(I2C_ADDR);

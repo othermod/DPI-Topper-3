@@ -54,12 +54,7 @@
 #define I2C_CMD_BRIGHT 0x10
 #define I2C_CMD_CRC 0x20
 #define I2C_CMD_GPIO_ALL 0x30
-#define I2C_CMD_PIN_DATA 0x40
-#define I2C_CMD_RESET 0x50
-
-// Values for I2C_CMD_PIN_DATA
-#define I2C_PIN_DATA_DIRECTIONS 1
-#define I2C_PIN_DATA_PINS       0
+#define I2C_CMD_RESET 0x40
 
 // I2C Command Values
 #define I2C_BRIGHT_DISABLE 8  // Send this value with I2C_CMD_BRIGHT to disable display
