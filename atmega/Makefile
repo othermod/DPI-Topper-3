@@ -13,8 +13,7 @@ build:
 
 flash:
 	$(MAKE) -C bootloader flash
-	$(MAKE) -C firmware
-	$(AVRDUDE) $(DUDEFLAGS) -D -U flash:w:$(FIRMWARE):i
+	$(MAKE) -C firmware flash
 
 clean:
 	$(MAKE) -C bootloader clean

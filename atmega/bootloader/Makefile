@@ -11,6 +11,12 @@ HFUSE      = 0xDA
 AVRDUDE    = sudo avrdude
 DUDEFLAGS  = -c linuxgpio -p m8
 
+# Color codes
+GREEN  = \033[0;32m
+RED    = \033[0;31m
+ORANGE = \033[0;33m
+NC     = \033[0m
+
 CC         = avr-gcc
 OBJCOPY    = avr-objcopy
 SIZE       = avr-size
@@ -50,20 +56,25 @@ $(TARGET).hex: $(TARGET).elf
 	 echo "RAM:     $$DATASIZE bytes used of 1024 [$$DATA_FREE bytes free]"
 
 flash: $(TARGET).hex
-	@OUTPUT=$$($(AVRDUDE) $(DUDEFLAGS) \
-		-U flash:w:$(TARGET).hex:i 2>&1); \
-	echo "$$OUTPUT"; \
-	LFUSE_READ=$$(echo "$$OUTPUT" | grep -oP '(?<=L:)[0-9A-Fa-f]+' | tr '[:upper:]' '[:lower:]'); \
-	HFUSE_READ=$$(echo "$$OUTPUT" | grep -oP '(?<=H:)[0-9A-Fa-f]+' | tr '[:upper:]' '[:lower:]'); \
-	LFUSE_EXP=$$(echo "$(LFUSE)" | sed 's/0x//i' | tr '[:upper:]' '[:lower:]'); \
-	HFUSE_EXP=$$(echo "$(HFUSE)" | sed 's/0x//i' | tr '[:upper:]' '[:lower:]'); \
-	if [ "$$LFUSE_READ" != "$$LFUSE_EXP" ] || [ "$$HFUSE_READ" != "$$HFUSE_EXP" ]; then \
-		echo "Fuses incorrect, programming..."; \
-		$(AVRDUDE) $(DUDEFLAGS) \
-			-U lfuse:w:$(LFUSE):m \
-			-U hfuse:w:$(HFUSE):m; \
+	@if $(AVRDUDE) $(DUDEFLAGS) -U flash:w:$(TARGET).hex:i 2>&1; then \
+		printf "$(GREEN)[OK] Bootloader flashed successfully$(NC)\n"; \
+		OUTPUT=$$($(AVRDUDE) $(DUDEFLAGS) -n 2>&1); \
+		LFUSE_READ=$$(echo "$$OUTPUT" | grep -oP '(?<=L:)[0-9A-Fa-f]+' | tr '[:upper:]' '[:lower:]'); \
+		HFUSE_READ=$$(echo "$$OUTPUT" | grep -oP '(?<=H:)[0-9A-Fa-f]+' | tr '[:upper:]' '[:lower:]'); \
+		LFUSE_EXP=$$(echo "$(LFUSE)" | sed 's/0x//i' | tr '[:upper:]' '[:lower:]'); \
+		HFUSE_EXP=$$(echo "$(HFUSE)" | sed 's/0x//i' | tr '[:upper:]' '[:lower:]'); \
+		if [ "$$LFUSE_READ" != "$$LFUSE_EXP" ] || [ "$$HFUSE_READ" != "$$HFUSE_EXP" ]; then \
+			printf "$(ORANGE)[NOTICE] Fuses incorrect, programming...$(NC)\n"; \
+			$(AVRDUDE) $(DUDEFLAGS) \
+				-U lfuse:w:$(LFUSE):m \
+				-U hfuse:w:$(HFUSE):m; \
+			printf "$(GREEN)[OK] Fuses programmed$(NC)\n"; \
+		else \
+			printf "$(GREEN)[OK] Fuses correct$(NC)\n"; \
+		fi; \
 	else \
-		echo "Fuses OK"; \
+		printf "$(RED)[FAIL] Bootloader flashing failed$(NC)\n"; \
+		exit 1; \
 	fi
 
 clean:

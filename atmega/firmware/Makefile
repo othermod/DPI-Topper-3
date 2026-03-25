@@ -2,6 +2,11 @@ TARGET   = firmware
 MCU      = atmega8
 F_CPU    = 8000000UL
 
+# Color codes
+GREEN  = \033[0;32m
+RED    = \033[0;31m
+NC     = \033[0m
+
 # Verify Arduino AVR core is installed before doing anything
 ARDUINO_AVR = $(lastword $(sort $(wildcard $(HOME)/.arduino15/packages/arduino/hardware/avr/*)))
 
@@ -79,7 +84,12 @@ $(TARGET).hex: $(TARGET).elf
 	 echo "RAM:     $$DATASIZE bytes used of 1024 [$$DATA_FREE bytes free]"
 
 flash: $(TARGET).hex
-	$(AVRDUDE) $(DUDEFLAGS) -U flash:w:$<:i
+	@if $(AVRDUDE) $(DUDEFLAGS) -U flash:w:$<:i 2>&1; then \
+		printf "$(GREEN)[OK] Firmware flashed successfully$(NC)\n"; \
+	else \
+		printf "$(RED)[FAIL] Firmware flashing failed$(NC)\n"; \
+		exit 1; \
+	fi
 
 clean:
 	rm -f firmware.o libcore.a $(TARGET).elf $(TARGET).hex
