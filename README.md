@@ -13,7 +13,7 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 
 ## Features
 
-- Compatible with [standard 40-pin LCD displays](lcds/) up to 800x480
+- Compatible with standard 40-pin LCD displays up to 800x480
 - 24-bit color display with brightness control
 - I2C capacitive touch panel support
 - Up to 5 available GPIOs (depending on features enabled)
