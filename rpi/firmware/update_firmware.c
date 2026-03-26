@@ -37,7 +37,7 @@
 #define PROBE_TIMEOUT_S         5
 #define PROBE_MAX_RETRIES       (PROBE_TIMEOUT_S * (1000000 / PROBE_INTERVAL_US))
 
-#define DEFAULT_RESET_CMD       { 0x50, 0x00 }
+#define DEFAULT_RESET_CMD       { 0x40, 0x00 }
 #define DEFAULT_RESET_CMD_LEN   2
 #define MAX_RESET_CMD_LEN       16
 
