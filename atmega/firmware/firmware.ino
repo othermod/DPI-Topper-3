@@ -8,7 +8,6 @@ struct SystemState {
   uint8_t debounceCount[16];
   bool dispPressed;
   uint8_t currentJoystick;
-  bool crcEnabled;
 };
 
 struct i2cStructure {
@@ -31,7 +30,7 @@ struct i2cStructure {
 // Global state declarations
 SystemState state;
 i2cStructure i2cdata;
-volatile byte rxData[4];
+volatile byte rxData[5];
 volatile bool pendingCommand = false;
 volatile bool pendingReset = false;
 unsigned long lastUpdateTime = 0;
@@ -143,7 +142,7 @@ void disableDisplay() {
     return;
   }
 
-  // Fade from current brightness down to minimum
+  i2cdata.status.display_on = false;
   uint8_t currentRaw = i2cdata.status.brightness * 4 + 1;
 
   for (uint8_t rawBrightness = currentRaw; rawBrightness >= 1; rawBrightness--) {
@@ -171,7 +170,6 @@ void disableDisplay() {
   }
 
   setPinLow(LCD_1W);
-  i2cdata.status.display_on = false;
 }
 
 void enableDisplay() {
@@ -179,6 +177,8 @@ void enableDisplay() {
   if (readPin(LCD_1W)) {
     return;
   }
+
+  i2cdata.status.display_on = true;
 
   // TPS61160 initialization sequence
   setPinLow(LCD_1W);
@@ -214,7 +214,6 @@ void enableDisplay() {
 
     delay(20);
   }
-  i2cdata.status.display_on = true;
 }
 
 void readJoysticks() {
@@ -274,6 +273,7 @@ void processI2CCommand() {
         }
       } else if (rxData[1] <= 7) {
         i2cdata.status.brightness = rxData[1];
+        writeBrightnessToEEPROM();
 
         // Check if display is currently off
         if (!readPin(LCD_1W)) {
@@ -285,8 +285,7 @@ void processI2CCommand() {
       break;
 
     case I2C_CMD_CRC:
-      state.crcEnabled = rxData[1];
-      i2cdata.status.crc_active = state.crcEnabled;
+      i2cdata.status.crc_active = rxData[1];
       break;
 
     case I2C_CMD_GPIO_ALL:
@@ -328,7 +327,7 @@ void readButtons() {
 }
 
 void onRequest() {
-  if (state.crcEnabled) {
+  if (i2cdata.status.crc_active) {
     calculateCRC();
   }
 
@@ -337,7 +336,7 @@ void onRequest() {
 
 void onReceive(int numBytes) {
   // Read up to 4 bytes
-  for (int i = 0; i < 4 && Wire.available(); i++) {
+  for (int i = 0; i < 5 && Wire.available(); i++) {
     rxData[i] = Wire.read();
   }
 
@@ -351,8 +350,8 @@ void onReceive(int numBytes) {
 
 void checkForIncomingI2CCommand() {
   if (pendingCommand) {
-    processI2CCommand();
     pendingCommand = false;
+    processI2CCommand();
   }
 }
 
@@ -369,7 +368,7 @@ void setup() {
   // Initialize state
   state.currentJoystick = 0;
   state.dispPressed = false;
-  state.crcEnabled = true;  // CRC enabled by default
+  i2cdata.status.crc_active = true;  // CRC enabled by default
 
   readEEPROM();
   updateGPIOStatusBits();
