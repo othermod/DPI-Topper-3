@@ -25,6 +25,8 @@ struct i2cStructure {
     bool reserved : 1;        // Bit 7: Reserved for future use
   } status;
   uint16_t crc16;
+  uint8_t fw_major;  // byte 9
+  uint8_t fw_minor;  // byte 10
 };
 
 // Global state declarations
@@ -369,6 +371,8 @@ void setup() {
   state.currentJoystick = 0;
   state.dispPressed = false;
   i2cdata.status.crc_active = true;  // CRC enabled by default
+  i2cdata.fw_major = FW_VERSION_MAJOR;
+  i2cdata.fw_minor = FW_VERSION_MINOR;
 
   readEEPROM();
   updateGPIOStatusBits();

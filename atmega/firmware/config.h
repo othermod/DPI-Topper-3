@@ -56,6 +56,10 @@
 #define I2C_CMD_GPIO_ALL 0x30
 #define I2C_CMD_RESET 0x40
 
+// Firmware Version
+#define FW_VERSION_MAJOR 1
+#define FW_VERSION_MINOR 0
+
 // I2C Command Values
 #define I2C_BRIGHT_DISABLE 8  // Send this value with I2C_CMD_BRIGHT to disable display
 #define I2C_BRIGHT_ENABLE 9   // Send this value with I2C_CMD_BRIGHT to enable display at previous brightness
