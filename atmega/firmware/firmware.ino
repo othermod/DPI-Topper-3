@@ -179,6 +179,7 @@ void enableDisplay() {
   }
 
   i2cdata.status.display_on = true;
+  writeBrightnessToEEPROM();
 
   // TPS61160 initialization sequence
   setPinLow(LCD_1W);
@@ -273,13 +274,12 @@ void processI2CCommand() {
         }
       } else if (rxData[1] <= 7) {
         i2cdata.status.brightness = rxData[1];
-        writeBrightnessToEEPROM();
 
         // Check if display is currently off
         if (!readPin(LCD_1W)) {
           enableDisplay();  // Was off, enable at new brightness
         } else {
-          setBrightness();  // Already on, just change brightness
+          setBrightness();  // Already on, just change brightness (also writes EEPROM)
         }
       }
       break;
