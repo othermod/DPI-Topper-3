@@ -22,11 +22,10 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 
 ## Getting Started
 
-Visit the [Topper 3 Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility
+Visit the [Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility
 
 **Get a Board:**
-- [Buy pre-assembled](https://othermod.com)
-- [Build your own](boards/)
+- Buy pre-assembled from [othermod.com](https://othermod.com)
 
 ## Community & Support
 
