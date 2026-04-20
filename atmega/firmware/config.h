@@ -54,7 +54,8 @@
 #define I2C_CMD_BRIGHT 0x10
 #define I2C_CMD_CRC 0x20
 #define I2C_CMD_GPIO_ALL 0x30
-#define I2C_CMD_RESET 0x40
+#define I2C_CMD_GPIO_SAVE 0x40
+#define I2C_CMD_RESET 0x50
 
 // Firmware Version
 #define FW_VERSION_MAJOR 1

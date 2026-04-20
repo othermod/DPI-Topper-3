@@ -291,15 +291,18 @@ void processI2CCommand() {
       break;
 
     case I2C_CMD_GPIO_ALL:
-      EEPROM.update(EEPROM_DDRB, ~rxData[1]);
-      EEPROM.update(EEPROM_DDRD, ~rxData[2]);
-      EEPROM.update(EEPROM_PORTB, rxData[3]);
-      EEPROM.update(EEPROM_PORTD, rxData[4]);
       DDRB = rxData[1];
       DDRD = rxData[2];
       PORTB = rxData[3];
       PORTD = rxData[4];
       updateGPIOStatusBits();
+      break;
+
+    case I2C_CMD_GPIO_SAVE:
+      EEPROM.update(EEPROM_DDRB, ~DDRB);
+      EEPROM.update(EEPROM_DDRD, ~DDRD);
+      EEPROM.update(EEPROM_PORTB, PORTB);
+      EEPROM.update(EEPROM_PORTD, PORTD);
       break;
 
     case I2C_CMD_RESET:
