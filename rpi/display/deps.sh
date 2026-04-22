@@ -1,8 +1,7 @@
 #!/bin/sh
 set -e
 
-REQUIRED="dtc gcc make"
-KERNEL_DIR="${KERNEL_DIR:-/home/user/linux}"
+KERNEL_DIR="${KERNEL_DIR:-$(dirname "$0")/linux}"
 KERNEL_BRANCH="${KERNEL_BRANCH:-v6.6}"
 
 detect_os() {
@@ -25,20 +24,20 @@ detect_os() {
 }
 
 install_alpine() {
-    apk add --no-cache $REQUIRED git
+    apk add --no-cache dtc gcc make git
 }
 
 install_debian() {
     apt-get update -qq
-    apt-get install -y -qq $REQUIRED git
+    apt-get install -y -qq device-tree-compiler gcc make git
 }
 
 install_fedora() {
-    dnf install -y $REQUIRED git
+    dnf install -y dtc gcc make git
 }
 
 install_rhel() {
-    yum install -y $REQUIRED git
+    yum install -y dtc gcc make git
 }
 
 install_darwin() {

@@ -1,8 +1,8 @@
 DTC = dtc
 GCC = gcc
 
-# Directory containing kernel dt-bindings headers
-KDIR = /home/user/linux
+# Kernel dt-bindings directory (override with KERNEL_DIR=/path/to/linux)
+KDIR ?= $(dir $(lastword $(MAKEFILE_LIST)))linux
 
 # Source and output files
 SRCS = topper3-display-24bit.dts \
