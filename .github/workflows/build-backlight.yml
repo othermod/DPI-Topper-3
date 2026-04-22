@@ -31,4 +31,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backlight-binaries
-          path: rpi/backlight/
+          path: rpi/backlight/bin/
