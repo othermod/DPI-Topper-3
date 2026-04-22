@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'rpi/display/**'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,17 +22,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y device-tree-compiler gcc make git
 
-      - name: Clone kernel headers (sparse)
-        run: |
-          git clone --depth 1 --filter=blob:none --sparse \
-            https://github.com/torvalds/linux.git linux
-          cd linux
-          git sparse-checkout init --cone
-          git sparse-checkout set include/dt-bindings
-
       - name: Build overlays
         run: |
           cd rpi/display
+          sh deps.sh
           make
 
       - name: Upload artifacts
