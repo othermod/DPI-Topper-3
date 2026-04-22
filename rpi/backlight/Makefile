@@ -4,9 +4,11 @@ LDFLAGS = -s
 
 BINDIR = bin
 
-all: $(BINDIR)/backlight-gamepad-armhf $(BINDIR)/backlight-gamepad-arm64 \
-     $(BINDIR)/backlight-basic-armhf $(BINDIR)/backlight-basic-arm64 \
-     $(BINDIR)/backlight-ctl-armhf $(BINDIR)/backlight-ctl-arm64
+all: cross
+
+cross: $(BINDIR)/backlight-gamepad-armhf $(BINDIR)/backlight-gamepad-arm64 \
+       $(BINDIR)/backlight-basic-armhf $(BINDIR)/backlight-basic-arm64 \
+       $(BINDIR)/backlight-ctl-armhf $(BINDIR)/backlight-ctl-arm64
 
 $(BINDIR)/backlight-gamepad-armhf: backlight-gamepad.c | $(BINDIR)
 	arm-linux-gnueabihf-gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
@@ -29,19 +31,18 @@ $(BINDIR)/backlight-ctl-arm64: backlight-ctl.c | $(BINDIR)
 $(BINDIR):
 	mkdir -p $@
 
-native: backlight-gamepad backlight-basic backlight-ctl
+native: $(BINDIR)/backlight-gamepad $(BINDIR)/backlight-basic $(BINDIR)/backlight-ctl
 
-backlight-gamepad: backlight-gamepad.c
+$(BINDIR)/backlight-gamepad: backlight-gamepad.c | $(BINDIR)
 	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
-backlight-basic: backlight-basic.c
+$(BINDIR)/backlight-basic: backlight-basic.c | $(BINDIR)
 	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
-backlight-ctl: backlight-ctl.c
+$(BINDIR)/backlight-ctl: backlight-ctl.c | $(BINDIR)
 	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 clean:
-	rm -f backlight-gamepad backlight-basic backlight-ctl
 	rm -rf $(BINDIR)
 
-.PHONY: all native clean
+.PHONY: all native cross clean
