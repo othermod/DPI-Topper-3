@@ -45,12 +45,20 @@ install_darwin() {
 }
 
 clone_kernel() {
-    if [ -d "$KERNEL_DIR/.git" ]; then
-        echo "Kernel source already cloned at $KERNEL_DIR"
+    if [ -d "$KERNEL_DIR/.git" ] && [ -f "$KERNEL_DIR/include/dt-bindings/gpio/gpio.h" ]; then
+        echo "Kernel headers already present at $KERNEL_DIR"
         return
     fi
-    echo "Cloning kernel source for dt-bindings headers..."
-    git clone --depth 1 --branch "$KERNEL_BRANCH" https://github.com/torvalds/linux.git "$KERNEL_DIR"
+    if [ -d "$KERNEL_DIR" ]; then
+        rm -rf "$KERNEL_DIR"
+    fi
+    echo "Cloning kernel source for dt-bindings headers (sparse checkout)..."
+    git clone --depth 1 --filter=blob:none --sparse \
+        https://github.com/torvalds/linux.git "$KERNEL_DIR"
+    cd "$KERNEL_DIR"
+    git sparse-checkout init --cone
+    git sparse-checkout set include/dt-bindings
+    echo "Kernel headers ready at $KERNEL_DIR"
 }
 
 OS=$(detect_os)
