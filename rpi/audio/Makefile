@@ -11,9 +11,7 @@ all: $(DTBO_FILES)
 %.dtbo: %.dts
 	$(DTC) $(DTC_FLAGS) -o $@ $<
 
-cross: all
-
 clean:
 	rm -f $(DTBO_FILES)
 
-.PHONY: all cross clean
+.PHONY: all clean
