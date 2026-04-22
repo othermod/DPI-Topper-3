@@ -44,6 +44,35 @@ install_darwin() {
     brew install dtc gcc make git
 }
 
+install_missing() {
+    missing=""
+    command -v dtc >/dev/null 2>&1 || missing="$missing dtc"
+    command -v gcc >/dev/null 2>&1 || missing="$missing gcc"
+    command -v make >/dev/null 2>&1 || missing="$missing make"
+    command -v git >/dev/null 2>&1 || missing="$missing git"
+
+    if [ -z "$missing" ]; then
+        return
+    fi
+
+    OS=$(detect_os)
+    echo "Missing tools:$missing"
+    echo "Detected OS: $OS"
+
+    case "$OS" in
+        alpine)   install_alpine ;;
+        debian|ubuntu) install_debian ;;
+        fedora)   install_fedora ;;
+        rhel|centos|rocky|amzn) install_rhel ;;
+        darwin)   install_darwin ;;
+        *)
+            echo "Unsupported OS: $OS"
+            echo "Install dtc, gcc, make, and git manually, then run make."
+            exit 1
+            ;;
+    esac
+}
+
 clone_kernel() {
     if [ -d "$KERNEL_DIR/.git" ] && [ -f "$KERNEL_DIR/include/dt-bindings/gpio/gpio.h" ]; then
         echo "Kernel headers already present at $KERNEL_DIR"
@@ -61,22 +90,7 @@ clone_kernel() {
     echo "Kernel headers ready at $KERNEL_DIR"
 }
 
-OS=$(detect_os)
-echo "Detected OS: $OS"
-
-case "$OS" in
-    alpine)   install_alpine ;;
-    debian|ubuntu) install_debian ;;
-    fedora)   install_fedora ;;
-    rhel|centos|rocky|amzn) install_rhel ;;
-    darwin)   install_darwin ;;
-    *)
-        echo "Unsupported OS: $OS"
-        echo "Install dtc, gcc, make, and git manually, then run make."
-        exit 1
-        ;;
-esac
-
+install_missing
 clone_kernel
 
 echo "Dependencies installed."
