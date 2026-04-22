@@ -1,0 +1,34 @@
+name: Build Bootloader
+
+on:
+  push:
+    paths:
+      - 'atmega/bootloader/**'
+  pull_request:
+    paths:
+      - 'atmega/bootloader/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y avr-gcc avr-binutils
+
+      - name: Build
+        run: |
+          cd atmega/bootloader
+          make
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootloader-hex
+          path: atmega/bootloader/bin/
