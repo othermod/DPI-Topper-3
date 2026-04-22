@@ -25,7 +25,6 @@ jobs:
       - name: Build overlays
         run: |
           cd rpi/display
-          sh deps.sh
           make
 
       - name: Upload artifacts

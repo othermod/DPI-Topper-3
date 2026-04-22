@@ -1,10 +1,8 @@
 DTC = dtc
 GCC = gcc
 
-# Kernel dt-bindings directory
 KDIR ?= $(dir $(lastword $(MAKEFILE_LIST)))linux
 
-# Source and output files
 SRCS = topper3-display-24bit.dts \
        topper3-display-24bit-noi2c.dts \
        topper3-display-21bit.dts \
@@ -12,20 +10,25 @@ SRCS = topper3-display-24bit.dts \
 
 OBJS = $(patsubst %.dts,%.dtbo,$(SRCS))
 
-# Include path for dt-bindings headers
 INCLUDE = -I$(KDIR)/include
-
-# Preprocessor flags for DTS files
 CPPFLAGS = -nostdinc -x assembler-with-cpp -undef -D__DTS__ $(INCLUDE)
-
-# dtc flags for Raspberry Pi overlays
 DTCFLAGS = -@ -Hepapr -I dts -O dtb -Wno-unit_address_vs_reg
 
 .PHONY: all clean
 
 all: $(OBJS)
 
-%.dtbo: %.dts
+$(KDIR)/include/dt-bindings/.exists:
+	@if [ ! -f $(KDIR)/include/dt-bindings/gpio/gpio.h ]; then \
+		git clone --depth 1 --filter=blob:none --sparse \
+			https://github.com/torvalds/linux.git $(KDIR); \
+		cd $(KDIR) && git sparse-checkout init --cone && \
+			git sparse-checkout set include/dt-bindings && \
+			git checkout; \
+	fi
+	@mkdir -p $(@D) && touch $@
+
+%.dtbo: %.dts $(KDIR)/include/dt-bindings/.exists
 	$(GCC) $(CPPFLAGS) -E $< | $(DTC) $(DTCFLAGS) -o $@ -
 
 clean:
