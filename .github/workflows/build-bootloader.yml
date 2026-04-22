@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -19,13 +19,14 @@ jobs:
 
       - name: Install AVR toolchain
         run: |
-          sudo apt-get update
-          sudo apt-get install -y avr-gcc avr-binutils
+          wget -q https://github.com/nicman23/devkit/releases/download/v1.0/avr-devkit-x64-linux.tar.gz -O /tmp/avr.tar.gz
+          sudo tar -xzf /tmp/avr.tar.gz -C /usr/local
+          echo "Installed avr-gcc: $(/usr/local/avr-devkit/bin/avr-gcc --version | head -1)"
 
       - name: Build
         run: |
           cd atmega/bootloader
-          make
+          PATH="/usr/local/avr-devkit/bin:$PATH" make
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
