@@ -2,13 +2,27 @@ CC       = gcc
 CFLAGS   = -Wall -Wextra -Wshadow -O2
 TARGET   = update_firmware
 SRC      = update_firmware.c
+BINDIR   = bin
 
-.PHONY: all clean
+all: cross
 
-all: $(TARGET)
+cross: $(BINDIR)/$(TARGET)-armhf $(BINDIR)/$(TARGET)-arm64
 
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $@ $^
+$(BINDIR)/$(TARGET)-armhf: $(SRC) | $(BINDIR)
+	arm-linux-gnueabihf-gcc $(CFLAGS) -o $@ $<
+
+$(BINDIR)/$(TARGET)-arm64: $(SRC) | $(BINDIR)
+	aarch64-linux-gnu-gcc $(CFLAGS) -o $@ $<
+
+$(BINDIR):
+	mkdir -p $@
+
+native: $(BINDIR)/$(TARGET)
+
+$(BINDIR)/$(TARGET): $(SRC) | $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f $(TARGET)
+	rm -rf $(BINDIR)
+
+.PHONY: all native cross clean
