@@ -1,7 +1,7 @@
 DTC = dtc
 GCC = gcc
 
-# Kernel dt-bindings directory (override with KERNEL_DIR=/path/to/linux)
+# Kernel dt-bindings directory
 KDIR ?= $(dir $(lastword $(MAKEFILE_LIST)))linux
 
 # Source and output files
