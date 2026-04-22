@@ -1,0 +1,34 @@
+name: Build Gamepad Binary
+
+on:
+  push:
+    paths:
+      - 'rpi/gamepad/**'
+  pull_request:
+    paths:
+      - 'rpi/gamepad/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
+
+      - name: Build
+        run: |
+          cd rpi/gamepad
+          make
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: gamepad-binaries
+          path: rpi/gamepad/bin/
