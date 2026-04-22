@@ -1,0 +1,36 @@
+name: Build Backlight Tools
+
+on:
+  push:
+    paths:
+      - 'rpi/backlight/**'
+  pull_request:
+    paths:
+      - 'rpi/backlight/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
+
+      - name: Build
+        run: |
+          cd rpi/backlight
+          make
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: backlight-binaries
+          path: rpi/backlight/backlight-*-armhf rpi/backlight/backlight-*-arm64
