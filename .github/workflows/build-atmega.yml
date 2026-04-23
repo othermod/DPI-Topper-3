@@ -38,5 +38,5 @@ jobs:
         with:
           name: atmega-binaries
           path: |
-            atmega/bootloader/bin/bootloader.hex
+            atmega/bootloader/bootloader.hex
             atmega/firmware/firmware.hex

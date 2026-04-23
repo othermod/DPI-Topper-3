@@ -78,10 +78,10 @@ $(TARGET).elf: firmware.o libcore.a $(WIRE_OBJS)
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -O ihex -R .eeprom $< $@
 	@PROGSIZE=$$($(SIZE) $< | tail -1 | awk '{print $$1}'); \
-	 DATASIZE=$$($(SIZE) $< | tail -1 | awk '{print $$2+$$3}'); \
-	 DATA_FREE=$$((1024 - $$DATASIZE)); \
-	 echo "Flash:   $$PROGSIZE bytes used of 8192 total (bootloader requires between 512 and 4096 bytes; firmware and bootloader must fit within 8192 bytes)"; \
-	 echo "RAM:     $$DATASIZE bytes used of 1024 [$$DATA_FREE bytes free]"
+		 DATASIZE=$$($(SIZE) $< | tail -1 | awk '{print $$2+$$3}'); \
+		 DATA_FREE=$$((1024 - $$DATASIZE)); \
+		 echo "Flash:   $$PROGSIZE bytes used of 8192 total (bootloader requires between 512 and 4096 bytes; firmware and bootloader must fit within 8192 bytes)"; \
+		 echo "RAM:     $$DATASIZE bytes used of 1024 [$$DATA_FREE bytes free]"
 
 flash: $(TARGET).hex
 	@if $(AVRDUDE) $(DUDEFLAGS) -U flash:w:$<:i 2>&1; then \
