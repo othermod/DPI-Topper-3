@@ -4,10 +4,10 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 
 <table>
   <tr>
-    <td><img src="main_image1.jpg" alt="Topper 3 Board"/></td>
-    <td><img src="main_image2.jpg" alt="Topper 3 on Pi 5"/></td>
-    <td><img src="main_image3.jpg" alt="Topper 3 on Pi Zero"/></td>
-    <td><img src="main_image4.jpg" alt="Topper 3 Touch"/></td>
+    <td><img src="https://raw.githubusercontent.com/wiki/othermod/DPI-Topper-3/pics/main_image1.webp" alt="Topper 3 Board"/></td>
+    <td><img src="https://raw.githubusercontent.com/wiki/othermod/DPI-Topper-3/pics/main_image2.webp" alt="Topper 3 on Pi 5"/></td>
+    <td><img src="https://raw.githubusercontent.com/wiki/othermod/DPI-Topper-3/pics/main_image3.webp" alt="Topper 3 on Pi Zero"/></td>
+    <td><img src="https://raw.githubusercontent.com/wiki/othermod/DPI-Topper-3/pics/main_image4.webp" alt="Topper 3 Touch"/></td>
   </tr>
 </table>
 
