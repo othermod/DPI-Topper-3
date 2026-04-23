@@ -33,6 +33,10 @@ jobs:
           cd atmega
           make
 
+      - name: Combine hex files
+        run: |
+          cat atmega/firmware/firmware.hex atmega/bootloader/bootloader.hex > atmega/combined.hex
+
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
@@ -40,3 +44,4 @@ jobs:
           path: |
             atmega/bootloader/bootloader.hex
             atmega/firmware/firmware.hex
+            atmega/combined.hex
