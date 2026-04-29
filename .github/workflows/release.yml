@@ -27,6 +27,16 @@ jobs:
     needs: [overlays, audio, backlight, firmware, gamepad, atmega]
     runs-on: ubuntu-latest
     steps:
+      - name: Create tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ github.event.inputs.version }}',
+              sha: context.sha
+            })
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
