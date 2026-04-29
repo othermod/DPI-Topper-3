@@ -31,5 +31,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dtbo-overlays
+          name: lcd-overlays
           path: rpi/lcd/*.dtbo

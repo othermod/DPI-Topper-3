@@ -41,7 +41,7 @@ jobs:
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
-          name: atmega-binaries
+          name: atmega-firmware
           path: |
             atmega/bootloader/bootloader.hex
             atmega/firmware/firmware.hex

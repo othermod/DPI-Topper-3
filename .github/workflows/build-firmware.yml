@@ -31,5 +31,5 @@ jobs:
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-binaries
+          name: firmware-bin
           path: rpi/firmware/bin/
