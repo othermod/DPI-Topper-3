@@ -4,10 +4,10 @@ on:
   workflow_call:
   push:
     paths:
-      - 'rpi/audio/**'
+      - 'rpi/lcd/**'
   pull_request:
     paths:
-      - 'rpi/audio/**'
+      - 'rpi/lcd/**'
   workflow_dispatch:
 
 jobs:
@@ -25,11 +25,11 @@ jobs:
 
       - name: Build overlays
         run: |
-          cd rpi/audio
+          cd rpi/lcd
           make
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: audio-dtbo-overlays
-          path: rpi/audio/*.dtbo
+          path: rpi/lcd/*.dtbo
