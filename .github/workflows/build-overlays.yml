@@ -1,4 +1,4 @@
-name: Build Device Tree Overlays
+name: Build LCD Overlays
 
 on:
   workflow_call:
