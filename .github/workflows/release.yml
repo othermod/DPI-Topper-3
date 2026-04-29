@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v1.0.0)'
+        required: true
+
+jobs:
+  overlays:
+    uses: ./.github/workflows/build-overlays.yml
+  audio:
+    uses: ./.github/workflows/build-audio.yml
+  backlight:
+    uses: ./.github/workflows/build-backlight.yml
+  firmware:
+    uses: ./.github/workflows/build-firmware.yml
+  gamepad:
+    uses: ./.github/workflows/build-gamepad.yml
+  atmega:
+    uses: ./.github/workflows/build-atmega.yml
+  create-release:
+    needs: [overlays, audio, backlight, firmware, gamepad, atmega]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          generate_release_notes: true

@@ -1,6 +1,7 @@
 name: Build Device Tree Overlays
 
 on:
+  workflow_call:
   push:
     paths:
       - 'rpi/display/**'

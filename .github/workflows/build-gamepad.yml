@@ -1,6 +1,7 @@
 name: Build Gamepad Binary
 
 on:
+  workflow_call:
   push:
     paths:
       - 'rpi/gamepad/**'

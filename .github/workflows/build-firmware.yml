@@ -1,6 +1,7 @@
 name: Build Firmware Tools
 
 on:
+  workflow_call:
   push:
     paths:
       - 'rpi/firmware/**'

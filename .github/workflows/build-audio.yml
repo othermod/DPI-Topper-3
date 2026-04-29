@@ -1,6 +1,7 @@
 name: Build Audio Overlays
 
 on:
+  workflow_call:
   push:
     paths:
       - 'rpi/audio/**'

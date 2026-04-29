@@ -1,6 +1,7 @@
 name: Build Backlight Tools
 
 on:
+  workflow_call:
   push:
     paths:
       - 'rpi/backlight/**'

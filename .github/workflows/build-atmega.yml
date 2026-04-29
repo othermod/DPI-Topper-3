@@ -1,6 +1,7 @@
 name: Build ATmega Firmware
 
 on:
+  workflow_call:
   push:
     paths:
       - 'atmega/**'
