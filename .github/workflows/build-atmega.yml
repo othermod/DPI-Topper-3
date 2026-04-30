@@ -16,18 +16,26 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Install AVR toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-avr binutils-avr avr-libc
 
-      - name: Install arduino-cli
+      - name: Setup arduino-cli
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Cache Arduino core
+        uses: actions/cache@v4
+        with:
+          path: ~/.arduino15
+          key: arduino-core-${{ runner.os }}-${{ hashFiles('atmega/Makefile') }}
+
+      - name: Install Arduino AVR core
         run: |
-          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-          ./bin/arduino-cli core update-index
-          ./bin/arduino-cli core install arduino:avr
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
 
       - name: Build
         run: |
@@ -39,7 +47,7 @@ jobs:
           cat atmega/firmware/firmware.hex atmega/bootloader/bootloader.hex > atmega/combined.hex
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@0b2256b8c012f482388ceae59e54a1d12f817449  # v4.6.0
         with:
           name: atmega-firmware
           path: |
