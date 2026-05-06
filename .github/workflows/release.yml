@@ -50,6 +50,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          gh release create "v${VERSION}" --draft --title "v${VERSION}" \
+          gh release create "${VERSION}" --draft --title "${VERSION}" \
             --repo "$GITHUB_REPOSITORY" \
             *-*.zip
