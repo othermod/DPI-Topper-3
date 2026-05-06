@@ -36,19 +36,20 @@ jobs:
           pattern: '*'
           path: artifacts
 
+      - name: Zip each artifact
+        run: |
+          for dir in artifacts/*/; do
+            if [ -d "$dir" ]; then
+              name=$(basename "$dir")
+              zip -r "${name}.zip" "$dir" -x "*.DS_Store"
+            fi
+          done
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          FILES=()
-          while IFS= read -r -d '' file; do
-            FILES+=("$file")
-          done < <(find artifacts -type f -print0)
-          
-          if [ ${#FILES[@]} -eq 0 ]; then
-            echo "No files found to upload"
-            exit 1
-          fi
-
-          gh release create "v${VERSION}" --draft --title "v${VERSION}" "${FILES[@]}" --repo "$GITHUB_REPOSITORY"
+          gh release create "v${VERSION}" --draft --title "v${VERSION}" \
+            --repo "$GITHUB_REPOSITORY" \
+            *-*.zip
