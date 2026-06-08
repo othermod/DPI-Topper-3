@@ -21,15 +21,22 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
+          sudo apt-get install -y --no-install-recommends gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libc6-dev-armel-cross libc6-dev-arm64-cross make
 
-      - name: Build
+      - name: Build 32-bit
         run: |
           cd rpi/backlight
-          make
+          make 32
 
-      - name: Upload binaries
+      - name: Build 64-bit
+        run: |
+          cd rpi/backlight
+          make 64
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: backlight-bin
-          path: rpi/backlight/bin/
+          name: backlight
+          path: |
+            rpi/backlight/32
+            rpi/backlight/64

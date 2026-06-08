@@ -1,48 +1,25 @@
-CC = gcc
-CFLAGS = -O3 -Wall -Wextra -std=c11 -fomit-frame-pointer -ffast-math -pipe
-LDFLAGS = -s
+# Cross-compilers
+CC_32 = arm-linux-gnueabihf-gcc
+CC_64 = aarch64-linux-gnu-gcc
 
-BINDIR = bin
+CFLAGS_COMMON = -O3 -Wall -Wextra -std=c11 -fomit-frame-pointer -ffast-math -pipe
 
-all: cross
+# Build for 32-bit architecture
+32:
+	@mkdir -p 32
+	$(CC_32) -o 32/backlight-gamepad backlight-gamepad.c $(CFLAGS_COMMON)
+	$(CC_32) -o 32/backlight-display backlight-display.c $(CFLAGS_COMMON)
+	$(CC_32) -o 32/backlight-ctl backlight-ctl.c $(CFLAGS_COMMON)
 
-cross: $(BINDIR)/backlight-gamepad-armhf $(BINDIR)/backlight-gamepad-arm64 \
-       $(BINDIR)/backlight-display-armhf $(BINDIR)/backlight-display-arm64 \
-       $(BINDIR)/backlight-ctl-armhf $(BINDIR)/backlight-ctl-arm64
+# Build for 64-bit architecture
+64:
+	@mkdir -p 64
+	$(CC_64) -o 64/backlight-gamepad backlight-gamepad.c $(CFLAGS_COMMON)
+	$(CC_64) -o 64/backlight-display backlight-display.c $(CFLAGS_COMMON)
+	$(CC_64) -o 64/backlight-ctl backlight-ctl.c $(CFLAGS_COMMON)
 
-$(BINDIR)/backlight-gamepad-armhf: backlight-gamepad.c | $(BINDIR)
-	arm-linux-gnueabihf-gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR)/backlight-gamepad-arm64: backlight-gamepad.c | $(BINDIR)
-	aarch64-linux-gnu-gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR)/backlight-display-armhf: backlight-display.c | $(BINDIR)
-	arm-linux-gnueabihf-gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR)/backlight-display-arm64: backlight-display.c | $(BINDIR)
-	aarch64-linux-gnu-gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR)/backlight-ctl-armhf: backlight-ctl.c | $(BINDIR)
-	arm-linux-gnueabihf-gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR)/backlight-ctl-arm64: backlight-ctl.c | $(BINDIR)
-	aarch64-linux-gnu-gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR):
-	mkdir -p $@
-
-native: $(BINDIR)/backlight-gamepad $(BINDIR)/backlight-display $(BINDIR)/backlight-ctl
-
-$(BINDIR)/backlight-gamepad: backlight-gamepad.c | $(BINDIR)
-	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR)/backlight-display: backlight-display.c | $(BINDIR)
-	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
-
-$(BINDIR)/backlight-ctl: backlight-ctl.c | $(BINDIR)
-	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
-
+# Clean build artifacts
 clean:
-	rm -rf $(BINDIR)
+	rm -rf 32 64
 
-.PHONY: all native cross clean
+.PHONY: 32 64 clean

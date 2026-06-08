@@ -1,13 +1,13 @@
-name: Build Firmware Tools
+name: Build Touch Binary
 
 on:
   workflow_call:
   push:
     paths:
-      - 'rpi/firmware/**'
+      - 'rpi/touch/**'
   pull_request:
     paths:
-      - 'rpi/firmware/**'
+      - 'rpi/touch/**'
   workflow_dispatch:
 
 jobs:
@@ -21,22 +21,22 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu libc6-dev-armel-cross libc6-dev-arm64-cross make
+          sudo apt-get install -y --no-install-recommends gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu make
 
       - name: Build 32-bit
         run: |
-          cd rpi/firmware
+          cd rpi/touch
           make 32
 
       - name: Build 64-bit
         run: |
-          cd rpi/firmware
+          cd rpi/touch
           make 64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: firmware
+          name: touch
           path: |
-            rpi/firmware/32
-            rpi/firmware/64
+            rpi/touch/32
+            rpi/touch/64

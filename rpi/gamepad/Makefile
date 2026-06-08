@@ -1,38 +1,23 @@
-CC = gcc
-CFLAGS = -O3 -Wall -Wextra -std=c11 -fomit-frame-pointer -ffast-math
-LDFLAGS = -s
+# Cross-compilers
+CC_32 = arm-linux-gnueabihf-gcc
+CC_64 = aarch64-linux-gnu-gcc
 
-BINDIR = bin
+CFLAGS_COMMON = -O3 -Wall -Wextra -std=c11 -fomit-frame-pointer -ffast-math
 
-all: cross
+# Build for 32-bit architecture
+32:
+	@mkdir -p 32
+	$(CC_32) -o 32/gamepad gamepad.c $(CFLAGS_COMMON)
+	$(CC_32) -o 32/gamepad_config gamepad_config.c $(CFLAGS_COMMON)
 
-cross: $(BINDIR)/gamepad-armhf $(BINDIR)/gamepad-arm64 \
-       $(BINDIR)/gamepad_config-armhf $(BINDIR)/gamepad_config-arm64
+# Build for 64-bit architecture
+64:
+	@mkdir -p 64
+	$(CC_64) -o 64/gamepad gamepad.c $(CFLAGS_COMMON)
+	$(CC_64) -o 64/gamepad_config gamepad_config.c $(CFLAGS_COMMON)
 
-$(BINDIR)/gamepad-armhf: gamepad.c | $(BINDIR)
-	arm-linux-gnueabihf-gcc $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-$(BINDIR)/gamepad-arm64: gamepad.c | $(BINDIR)
-	aarch64-linux-gnu-gcc $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-$(BINDIR)/gamepad_config-armhf: gamepad_config.c | $(BINDIR)
-	arm-linux-gnueabihf-gcc $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-$(BINDIR)/gamepad_config-arm64: gamepad_config.c | $(BINDIR)
-	aarch64-linux-gnu-gcc $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-$(BINDIR):
-	mkdir -p $@
-
-native: $(BINDIR)/gamepad $(BINDIR)/gamepad_config
-
-$(BINDIR)/gamepad: gamepad.c | $(BINDIR)
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-$(BINDIR)/gamepad_config: gamepad_config.c | $(BINDIR)
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-
+# Clean build artifacts
 clean:
-	rm -rf $(BINDIR)
+	rm -rf 32 64
 
-.PHONY: all native cross clean
+.PHONY: 32 64 clean
