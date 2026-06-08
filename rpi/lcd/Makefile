@@ -3,10 +3,7 @@ GCC = gcc
 
 KDIR ?= $(dir $(lastword $(MAKEFILE_LIST)))linux
 
-SRCS = topper3-lcd-24bit.dts \
-       topper3-lcd-24bit-noi2c.dts \
-       topper3-lcd-21bit.dts \
-       topper3-lcd-21bit-noi2c.dts
+SRCS = topper3-lcd.dts
 
 OBJS = $(patsubst %.dts,%.dtbo,$(SRCS))
 
@@ -33,3 +30,4 @@ $(KDIR)/include/dt-bindings/.exists:
 
 clean:
 	rm -f $(OBJS)
+	rm -rf $(KDIR)

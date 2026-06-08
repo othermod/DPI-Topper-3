@@ -11,8 +11,8 @@ permissions:
   contents: write
 
 jobs:
-  overlays:
-    uses: ./.github/workflows/build-overlays.yml
+  lcd:
+    uses: ./.github/workflows/build-lcd.yml
   audio:
     uses: ./.github/workflows/build-audio.yml
   backlight:
@@ -21,10 +21,12 @@ jobs:
     uses: ./.github/workflows/build-firmware.yml
   gamepad:
     uses: ./.github/workflows/build-gamepad.yml
+  touch:
+    uses: ./.github/workflows/build-touch.yml
   atmega:
     uses: ./.github/workflows/build-atmega.yml
   create-release:
-    needs: [overlays, audio, backlight, firmware, gamepad, atmega]
+    needs: [lcd, audio, backlight, firmware, gamepad, touch, atmega]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
