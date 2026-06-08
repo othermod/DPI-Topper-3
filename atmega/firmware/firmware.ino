@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <EEPROM.h>
-#include <avr/wdt.h>
 #include "config.h"
 
 struct SystemState {
@@ -25,8 +24,6 @@ struct i2cStructure {
     bool reserved : 1;        // Bit 7: Reserved for future use
   } status;
   uint16_t crc16;
-  uint8_t fw_major;  // byte 9
-  uint8_t fw_minor;  // byte 10
 };
 
 // Global state declarations
@@ -34,7 +31,9 @@ SystemState state;
 i2cStructure i2cdata;
 volatile byte rxData[5];
 volatile bool pendingCommand = false;
-volatile bool pendingReset = false;
+volatile bool versionMode = false;
+uint8_t versionBytes[7] = {0};
+uint16_t versionCRC = 0;
 unsigned long lastUpdateTime = 0;
 uint16_t crcTable[256];
 
@@ -305,8 +304,8 @@ void processI2CCommand() {
       EEPROM.update(EEPROM_PORTD, PORTD);
       break;
 
-    case I2C_CMD_RESET:
-      pendingReset = true;
+    case I2C_CMD_VERSION:
+      versionMode = true;
       break;
   }
 }
@@ -332,11 +331,19 @@ void readButtons() {
 }
 
 void onRequest() {
-  if (i2cdata.status.crc_active) {
-    calculateCRC();
+  if (versionMode) {
+    versionMode = false;
+    uint8_t versionData[9];
+    memcpy(versionData, versionBytes, 7);
+    versionData[7] = (uint8_t)(versionCRC >> 8);
+    versionData[8] = (uint8_t)(versionCRC & 0xFF);
+    Wire.write(versionData, sizeof(versionData));
+  } else {
+    if (i2cdata.status.crc_active) {
+      calculateCRC();
+    }
+    Wire.write((const uint8_t*)&i2cdata, sizeof(i2cdata));
   }
-
-  Wire.write((const uint8_t*)&i2cdata, sizeof(i2cdata));
 }
 
 void onReceive(int numBytes) {
@@ -370,12 +377,20 @@ void setup() {
   initGPIOs();
   generateCRCTable();
 
+  // Compute static version string and CRC once, reusing the CRC table
+  {
+    strncpy((char*)versionBytes, FW_VERSION, sizeof(versionBytes));
+    uint16_t crc = 0xFFFF;
+    for (uint8_t i = 0; i < 7; i++) {
+      crc = (crc << 8) ^ crcTable[(crc >> 8) ^ versionBytes[i]];
+    }
+    versionCRC = crc;
+  }
+
   // Initialize state
   state.currentJoystick = 0;
   state.dispPressed = false;
   i2cdata.status.crc_active = true;  // CRC enabled by default
-  i2cdata.fw_major = FW_VERSION_MAJOR;
-  i2cdata.fw_minor = FW_VERSION_MINOR;
 
   readEEPROM();
   updateGPIOStatusBits();
@@ -387,11 +402,6 @@ void setup() {
 }
 
 void loop() {
-  if (pendingReset) {
-    wdt_enable(WDTO_15MS);
-    while (1);
-  }
-
   checkForIncomingI2CCommand();  // Process any pending I2C commands immediately
 
   unsigned long currentTime = millis();

@@ -55,11 +55,10 @@
 #define I2C_CMD_CRC 0x20
 #define I2C_CMD_GPIO_ALL 0x30
 #define I2C_CMD_GPIO_SAVE 0x40
-#define I2C_CMD_RESET 0x50
+#define I2C_CMD_VERSION 0x50
 
-// Firmware Version
-#define FW_VERSION_MAJOR 1
-#define FW_VERSION_MINOR 0
+// Firmware Version (max 7 characters)
+#define FW_VERSION "1.0"
 
 // I2C Command Values
 #define I2C_BRIGHT_DISABLE 8  // Send this value with I2C_CMD_BRIGHT to disable display

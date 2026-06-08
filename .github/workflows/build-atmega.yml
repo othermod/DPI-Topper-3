@@ -21,24 +21,30 @@ jobs:
       - name: Install AVR toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-avr binutils-avr avr-libc
+          sudo apt-get install -y --no-install-recommends gcc-avr binutils-avr avr-libc
 
       - name: Install arduino-cli
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-          ./bin/arduino-cli core update-index
-          ./bin/arduino-cli core install arduino:avr
+        uses: arduino/setup-arduino-cli@v2
 
-      - name: Build
+      - name: Install Arduino AVR core
+        run: arduino-cli core install arduino:avr
+
+      - name: Build bootloader
         run: |
-          cd atmega
+          cd atmega/bootloader
           make
+
+      - name: Build firmware
+        run: |
+          cd atmega/firmware
+          make all
 
       - name: Combine hex files
         run: |
-          cat atmega/firmware/firmware.hex atmega/bootloader/bootloader.hex > atmega/combined.hex
+          cd atmega
+          make combine
 
-      - name: Upload binaries
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: atmega-firmware
