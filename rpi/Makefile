@@ -1,6 +1,6 @@
 .PHONY: 32 64 clean
 
-BUILDS := firmware backlight gamepad touch
+BUILDS := firmware backlight gamepad touch gpio
 DTBO   := audio lcd
 
 32:
