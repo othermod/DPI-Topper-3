@@ -1,5 +1,3 @@
-# gpio_config
-
 Command-line utility for reading and configuring the ATmega8's GPIO pins over I2C. Modelled on `raspi-gpio`.
 
 ## Pin numbering
