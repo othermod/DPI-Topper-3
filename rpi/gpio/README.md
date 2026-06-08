@@ -12,24 +12,24 @@ The ATmega8 exposes 16 GPIO pins split across two ports:
 ## Build
 
 ```bash
-gcc -o gpio_config gpio_config.c
+gcc -o gpio gpio.c
 ```
 
 ## Usage
 
 ```
-gpio_config get [<pin>|<pin,pin,...>|<start>-<end>]
-gpio_config set <pin>[,<pin>,...] <options>...
-gpio_config set <start>-<end> <options>...
+gpio get [<pin>|<pin,pin,...>|<start>-<end>]
+gpio set <pin>[,<pin>,...] <options>...
+gpio set <start>-<end> <options>...
 ```
 
 ### get
 
 ```bash
-gpio_config get           # all pins
-gpio_config get 5         # single pin
-gpio_config get 0,3,7     # comma-separated list
-gpio_config get 0-7       # range
+gpio get           # all pins
+gpio get 5         # single pin
+gpio get 0,3,7     # comma-separated list
+gpio get 0-7       # range
 ```
 
 Output format:
@@ -54,13 +54,13 @@ Options can be combined and are applied left to right.
 | `pd`   | Not supported on ATmega8; ignored with a warning |
 
 ```bash
-gpio_config set 5 op           # output, level unchanged
-gpio_config set 5 op dh        # output driving high
-gpio_config set 5 op dl        # output driving low
-gpio_config set 5 ip pu        # input with pull-up
-gpio_config set 5 ip pn        # floating input
-gpio_config set 0,3,7 ip pn    # floating input on pins 0, 3, and 7
-gpio_config set 0-15 ip pn     # floating input on all pins
+gpio set 5 op           # output, level unchanged
+gpio set 5 op dh        # output driving high
+gpio set 5 op dl        # output driving low
+gpio set 5 ip pu        # input with pull-up
+gpio set 5 ip pn        # floating input
+gpio set 0,3,7 ip pn    # floating input on pins 0, 3, and 7
+gpio set 0-15 ip pn     # floating input on all pins
 ```
 
 ## Notes
