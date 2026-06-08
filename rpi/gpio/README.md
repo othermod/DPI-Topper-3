@@ -21,7 +21,8 @@ gcc -o gpio_config gpio_config.c
 
 ```
 gpio_config get [<pin>|<pin,pin,...>|<start>-<end>]
-gpio_config set <pin> <options>...
+gpio_config set <pin>[,<pin>,...] <options>...
+gpio_config set <start>-<end> <options>...
 ```
 
 ### get
@@ -60,6 +61,8 @@ gpio_config set 5 op dh        # output driving high
 gpio_config set 5 op dl        # output driving low
 gpio_config set 5 ip pu        # input with pull-up
 gpio_config set 5 ip pn        # floating input
+gpio_config set 0,3,7 ip pn    # floating input on pins 0, 3, and 7
+gpio_config set 0-15 ip pn     # floating input on all pins
 ```
 
 ## Notes

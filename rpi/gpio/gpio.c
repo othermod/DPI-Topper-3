@@ -151,24 +151,27 @@ static int cmd_get(int fd, int argc, char *argv[], int optind) {
 
 // ---- set ----------------------------------------------------------------
 
-static int cmd_set(int fd, int pin, int argc, char *argv[], int optind) {
-    uint8_t buf[RESPONSE_LEN];
-    if (read_state(fd, buf) < 0) return -1;
+struct set_context {
+    uint8_t *buf;
+    int      argc;
+    char   **argv;
+    int      optind;
+    int      error;
+};
+
+static void apply_options_to_pin(int pin, void *userdata) {
+    struct set_context *ctx = (struct set_context *)userdata;
+    if (ctx->error) return;
 
     int     port = pin / 8;
     uint8_t bit  = pin % 8;
     uint8_t mask = 1 << bit;
 
-    uint8_t *ddr      = (port == 0) ? &buf[IDX_DDRB]  : &buf[IDX_DDRD];
-    uint8_t *port_reg = (port == 0) ? &buf[IDX_PORTB] : &buf[IDX_PORTD];
+    uint8_t *ddr      = (port == 0) ? &ctx->buf[IDX_DDRB]  : &ctx->buf[IDX_DDRD];
+    uint8_t *port_reg = (port == 0) ? &ctx->buf[IDX_PORTB] : &ctx->buf[IDX_PORTD];
 
-    if (optind >= argc) {
-        fprintf(stderr, "set requires at least one option\n");
-        return -1;
-    }
-
-    for (int i = optind; i < argc; i++) {
-        const char *opt = argv[i];
+    for (int i = ctx->optind; i < ctx->argc; i++) {
+        const char *opt = ctx->argv[i];
         if      (strcmp(opt, "ip") == 0) { *ddr      &= ~mask; }
         else if (strcmp(opt, "op") == 0) { *ddr      |=  mask; }
         else if (strcmp(opt, "pu") == 0) { *port_reg |=  mask; }
@@ -179,9 +182,24 @@ static int cmd_set(int fd, int pin, int argc, char *argv[], int optind) {
             fprintf(stderr, "Warning: pull-down not supported on ATmega8; ignoring 'pd'\n");
         } else {
             fprintf(stderr, "Unknown option '%s'\n", opt);
-            return -1;
+            ctx->error = 1;
+            return;
         }
     }
+}
+
+static int cmd_set(int fd, const char *pin_spec, int argc, char *argv[], int optind) {
+    if (optind >= argc) {
+        fprintf(stderr, "set requires at least one option\n");
+        return -1;
+    }
+
+    uint8_t buf[RESPONSE_LEN];
+    if (read_state(fd, buf) < 0) return -1;
+
+    struct set_context ctx = { buf, argc, argv, optind, 0 };
+    if (parse_pins(pin_spec, apply_options_to_pin, &ctx) < 0) return -1;
+    if (ctx.error) return -1;
 
     return write_state(fd, buf[IDX_DDRB], buf[IDX_DDRD], buf[IDX_PORTB], buf[IDX_PORTD]);
 }
@@ -191,7 +209,7 @@ static int cmd_set(int fd, int pin, int argc, char *argv[], int optind) {
 static void usage(const char *prog) {
     printf("Usage:\n");
     printf("  %s get [<pin>|<pin,pin,...>|<start>-<end>]\n", prog);
-    printf("  %s set <pin> <options>...\n\n", prog);
+    printf("  %s set <pin[,pin,...]|start-end> <options>...\n\n", prog);
     printf("  pin: 0-%d (0-7 = PORTB bit 0-7, 8-15 = PORTD bit 0-7)\n\n", NUM_PINS - 1);
     printf("Valid [options] for %s set are:\n", prog);
     printf("  ip      set GPIO as input\n");
@@ -211,6 +229,7 @@ static void usage(const char *prog) {
     printf("  %s set 5 op dh      Set GPIO 5 as output driving high\n", prog);
     printf("  %s set 5 ip pu      Set GPIO 5 as input with pull-up\n", prog);
     printf("  %s set 5 ip pn      Set GPIO 5 as floating input\n", prog);
+    printf("  %s set 0-15 ip pn   Set all GPIOs as floating inputs\n", prog);
 }
 
 // ---- Main ---------------------------------------------------------------
@@ -236,12 +255,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "set requires a pin number and at least one option\n");
             close(fd); return 1;
         }
-        int pin = atoi(argv[2]);
-        if (pin < 0 || pin >= NUM_PINS) {
-            fprintf(stderr, "Pin must be 0-%d\n", NUM_PINS - 1);
-            close(fd); return 1;
-        }
-        result = cmd_set(fd, pin, argc, argv, 3);
+        result = cmd_set(fd, argv[2], argc, argv, 3);
 
     } else {
         fprintf(stderr, "Unknown command '%s'\n\n", cmd);
