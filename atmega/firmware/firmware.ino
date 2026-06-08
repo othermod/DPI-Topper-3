@@ -32,6 +32,7 @@ i2cStructure i2cdata;
 volatile byte rxData[5];
 volatile bool pendingCommand = false;
 volatile bool versionMode = false;
+volatile bool pinInfoMode = false;
 uint8_t versionBytes[7] = {0};
 uint16_t versionCRC = 0;
 unsigned long lastUpdateTime = 0;
@@ -76,17 +77,12 @@ void generateCRCTable() {
   }
 }
 
-void calculateCRC() {
+uint16_t calculateCRC(const uint8_t* data, uint8_t len) {
   uint16_t crc = 0xFFFF;
-  const uint8_t* data = (const uint8_t*)&i2cdata;
-
-  // Process first 7 bytes of i2cdata structure (2 for buttons, 4 for joysticks, 1 for status)
-  for (uint8_t i = 0; i < 7; i++) {
-    uint8_t tableIndex = (crc >> 8) ^ data[i];
-    crc = (crc << 8) ^ crcTable[tableIndex];
+  for (uint8_t i = 0; i < len; i++) {
+    crc = (crc << 8) ^ crcTable[(crc >> 8) ^ data[i]];
   }
-
-  i2cdata.crc16 = crc;
+  return crc;
 }
 
 void readEEPROM() {
@@ -307,6 +303,10 @@ void processI2CCommand() {
     case I2C_CMD_VERSION:
       versionMode = true;
       break;
+
+    case I2C_CMD_GPIO_READ:
+      pinInfoMode = true;
+      break;
   }
 }
 
@@ -338,9 +338,16 @@ void onRequest() {
     versionData[7] = (uint8_t)(versionCRC >> 8);
     versionData[8] = (uint8_t)(versionCRC & 0xFF);
     Wire.write(versionData, sizeof(versionData));
+  } else if (pinInfoMode) {
+    pinInfoMode = false;
+    uint8_t pinData[9] = { DDRB, DDRD, PORTB, PORTD, PINB, PIND, 0x00, 0x00, 0x00 };
+    uint16_t crc = calculateCRC(pinData, 7);
+    pinData[7] = (uint8_t)(crc >> 8);
+    pinData[8] = (uint8_t)(crc & 0xFF);
+    Wire.write(pinData, sizeof(pinData));
   } else {
     if (i2cdata.status.crc_active) {
-      calculateCRC();
+      i2cdata.crc16 = calculateCRC((const uint8_t*)&i2cdata, 7);
     }
     Wire.write((const uint8_t*)&i2cdata, sizeof(i2cdata));
   }
@@ -377,15 +384,8 @@ void setup() {
   initGPIOs();
   generateCRCTable();
 
-  // Compute static version string and CRC once, reusing the CRC table
-  {
-    strncpy((char*)versionBytes, FW_VERSION, sizeof(versionBytes));
-    uint16_t crc = 0xFFFF;
-    for (uint8_t i = 0; i < 7; i++) {
-      crc = (crc << 8) ^ crcTable[(crc >> 8) ^ versionBytes[i]];
-    }
-    versionCRC = crc;
-  }
+  strncpy((char*)versionBytes, FW_VERSION, sizeof(versionBytes));
+  versionCRC = calculateCRC(versionBytes, 7);
 
   // Initialize state
   state.currentJoystick = 0;

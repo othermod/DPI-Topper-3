@@ -56,6 +56,7 @@
 #define I2C_CMD_GPIO_ALL 0x30
 #define I2C_CMD_GPIO_SAVE 0x40
 #define I2C_CMD_VERSION 0x50
+#define I2C_CMD_GPIO_READ 0x60
 
 // Firmware Version (max 7 characters)
 #define FW_VERSION "1.0"
