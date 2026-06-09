@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 //https://claude.ai/chat/43f3b908-6278-4e18-b42f-5d14eb039ab8
 
 #include <stdio.h>
@@ -88,8 +89,8 @@ void emit(int fd, int type, int code, int val) {
     ie.type = type;
     ie.code = code;
     ie.value = val;
-    ie.time.tv_sec = 0;
-    ie.time.tv_usec = 0;
+    
+    
 
     write(fd, &ie, sizeof(ie));
 }
