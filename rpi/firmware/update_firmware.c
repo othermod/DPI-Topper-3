@@ -10,6 +10,7 @@
 #include <linux/i2c.h>
 
 #define BL_ADDR                 0x29
+#define APP_ADDR                0x30
 
 #define CMD_READ_INFO           0x01
 #define CMD_WRITE_PAGE          0x03  /* page number byte precedes the 64 data bytes */
@@ -40,6 +41,13 @@
 
 /* How many times to retry a single page write before giving up on the sequence */
 #define PAGE_WRITE_RETRIES      3
+
+/*
+ * After CMD_FINALIZE the bootloader jumps to the app if verification passes,
+ * so 0x29 disappears. Wait this long for the application to start before
+ * probing 0x30 once.
+ */
+#define APP_STARTUP_WAIT_US     500000
 
 typedef struct {
     uint8_t  data[FLASH_SIZE];
@@ -387,18 +395,54 @@ static int run_flash_sequence(flash_image_t *image)
         fprintf(stderr, "Failed to send CMD_FINALIZE.\n");
         return -1;
     }
-    printf("Waiting for bootloader verification...\n");
 
-    if (bl_read_info(&verify_info) < 0)
+    /*
+     * The bootloader runs compute_flash_checksum (~7ms) after CMD_FINALIZE.
+     * bl_finalize() already slept 100ms, so the result is ready by now.
+     *
+     * On VERIFY_PASSED the bootloader immediately jumps to the application
+     * and stops responding at 0x29. On VERIFY_FAILED it stays at 0x29.
+     *
+     * Probe 0x29 first to determine the outcome without assuming the
+     * bootloader is still present.
+     */
+    printf("Checking verification result...\n");
+
+    if (i2c_probe(BL_ADDR) == 0) {
+        /*
+         * Bootloader still present. This is either a genuine verification
+         * failure, or a bootloader variant that passes but stays resident
+         * until power-cycled rather than jumping to the app. Read verify_status
+         * to tell them apart.
+         */
+        if (bl_read_info(&verify_info) == 0) {
+            if (verify_info.verify_status == VERIFY_PASSED) {
+                printf("Verification passed. Bootloader will remain until power cycle.\n");
+                return 0;
+            }
+            fprintf(stderr, "Verification FAILED (status 0x%02X). Flash may be corrupt.\n",
+                    verify_info.verify_status);
+        } else {
+            fprintf(stderr, "Verification FAILED. Bootloader still active.\n");
+        }
         return -1;
+    }
 
-    if (verify_info.verify_status == VERIFY_PASSED) {
-        printf("Verification passed. Firmware update complete.\n");
+    /*
+     * 0x29 is gone: the bootloader jumped to the application.
+     * Wait for the app's I2C slave to initialize, then probe once.
+     */
+    printf("Bootloader jumped to application. Waiting for app at 0x%02X...\n", APP_ADDR);
+    usleep(APP_STARTUP_WAIT_US);
+    if (i2c_probe(APP_ADDR) == 0) {
+        printf("Verification passed. Application running at 0x%02X.\n", APP_ADDR);
         return 0;
     }
 
-    fprintf(stderr, "Verification FAILED (status 0x%02X). Flash may be corrupt.\n",
-            verify_info.verify_status);
+    fprintf(stderr,
+            "Bootloader jumped (checksum passed) but application did not respond at "
+            "0x%02X. The firmware may still be running.\n",
+            APP_ADDR);
     return -1;
 }
 
