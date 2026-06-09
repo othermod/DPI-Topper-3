@@ -1,13 +1,13 @@
-name: Build Touch Binary
+name: Utility Gamepad
 
 on:
   workflow_call:
   push:
     paths:
-      - 'rpi/touch/**'
+      - 'rpi/gamepad/**'
   pull_request:
     paths:
-      - 'rpi/touch/**'
+      - 'rpi/gamepad/**'
   workflow_dispatch:
 
 jobs:
@@ -25,18 +25,18 @@ jobs:
 
       - name: Build 32-bit
         run: |
-          cd rpi/touch
+          cd rpi/gamepad
           make 32
 
       - name: Build 64-bit
         run: |
-          cd rpi/touch
+          cd rpi/gamepad
           make 64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: touch
+          name: gamepad
           path: |
-            rpi/touch/32
-            rpi/touch/64
+            rpi/gamepad/32
+            rpi/gamepad/64

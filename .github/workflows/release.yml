@@ -12,21 +12,23 @@ permissions:
 
 jobs:
   lcd:
-    uses: ./.github/workflows/build-lcd.yml
+    uses: ./.github/workflows/overlay-lcd.yml
   audio:
-    uses: ./.github/workflows/build-audio.yml
+    uses: ./.github/workflows/overlay-audio.yml
   backlight:
-    uses: ./.github/workflows/build-backlight.yml
+    uses: ./.github/workflows/utility-backlight.yml
   firmware:
-    uses: ./.github/workflows/build-firmware.yml
+    uses: ./.github/workflows/utility-firmware.yml
   gamepad:
-    uses: ./.github/workflows/build-gamepad.yml
+    uses: ./.github/workflows/utility-gamepad.yml
   touch:
-    uses: ./.github/workflows/build-touch.yml
+    uses: ./.github/workflows/utility-touch.yml
   atmega:
-    uses: ./.github/workflows/build-atmega.yml
+    uses: ./.github/workflows/firmware-atmega.yml
+  gpio:
+    uses: ./.github/workflows/utility-gpio.yml
   create-release:
-    needs: [lcd, audio, backlight, firmware, gamepad, touch, atmega]
+    needs: [lcd, audio, backlight, firmware, gamepad, touch, atmega, gpio]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

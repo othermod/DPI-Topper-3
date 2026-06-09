@@ -1,4 +1,4 @@
-name: Build Firmware Tools
+name: Utility Firmware
 
 on:
   workflow_call:

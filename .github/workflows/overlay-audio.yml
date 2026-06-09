@@ -1,13 +1,13 @@
-name: Build LCD Overlays
+name: Overlay Audio
 
 on:
   workflow_call:
   push:
     paths:
-      - 'rpi/lcd/**'
+      - 'rpi/audio/**'
   pull_request:
     paths:
-      - 'rpi/lcd/**'
+      - 'rpi/audio/**'
   workflow_dispatch:
 
 jobs:
@@ -21,15 +21,15 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y device-tree-compiler gcc make git
+          sudo apt-get install -y device-tree-compiler make
 
       - name: Build overlays
         run: |
-          cd rpi/lcd
+          cd rpi/audio
           make
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: lcd
-          path: rpi/lcd/*.dtbo
+          name: audio-overlays
+          path: rpi/audio/*.dtbo

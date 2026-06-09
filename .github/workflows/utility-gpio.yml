@@ -1,0 +1,36 @@
+name: Utility GPIO
+
+on:
+  workflow_call:
+  push:
+    paths:
+      - 'rpi/gpio/**'
+  pull_request:
+    paths:
+      - 'rpi/gpio/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc libc6-dev
+
+      - name: Build gpio tool
+        working-directory: ./rpi/gpio
+        run: |
+          make
+          ls -la gpio
+
+      - name: Test compilation flags
+        working-directory: ./rpi/gpio
+        run: |
+          make clean
+          make CFLAGS="-Wall -Wextra -Werror -O2"

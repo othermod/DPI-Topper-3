@@ -1,4 +1,4 @@
-name: Build Backlight Tools
+name: Utility Backlight
 
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-name: Build ATmega Firmware
+name: Firmware ATmega
 
 on:
   workflow_call:
