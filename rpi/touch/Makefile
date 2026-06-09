@@ -1,5 +1,5 @@
 # Cross-compilers
-CC_32 = arm-linux-gnueabihf-gcc
+CC_32 = arm-linux-gnueabi-gcc -march=armv6zk -mfloat-abi=softfp
 CC_64 = aarch64-linux-gnu-gcc
 
 CFLAGS_COMMON = -O3 -Wall -Wextra -std=c11
