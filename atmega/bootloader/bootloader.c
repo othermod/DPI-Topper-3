@@ -287,12 +287,16 @@ void init1(void)
 int main(void) __attribute__((OS_main, section(".init9")));
 int main(void)
 {
+    /* -nostartfiles skips .bss zeroing; explicitly init critical state for warm resets */
+    bl_mode            = BL_HOLD;
+    page_write_pending = 0;
+    page_write_ready   = 0;
 
-    /* PC4: output, initially low — driven high when bootloader holds active */
+    /* output, initially low, driven high when bootloader holds active */
     DDRC  |=  LCD_CONTROL;
     PORTC &= ~LCD_CONTROL;
 
-    /* PC3: input with pull-up — held low at power-on forces bootloader to stay active */
+    /* input with pull-up, held low at power-on forces bootloader to stay active */
     DDRC  &= ~BTN_DISP;
     PORTC |=  BTN_DISP;
 
