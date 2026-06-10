@@ -25,7 +25,7 @@ An open-source add-on board for the Raspberry Pi (Zero/3/4/5) that adds display 
 Visit the [Wiki](https://github.com/othermod/DPI-Topper-3/wiki) to learn about features, options, and compatibility
 
 **Get a Board:**
-- Buy pre-assembled from [othermod.com](https://othermod.com)
+- Buy pre-assembled from [othermod.com](https://othermod.com/product/raspberry-pi-dpi-topper-for-40-pin-lcd-24-bit-rgb-888-version/)
 
 ## Community & Support
 
