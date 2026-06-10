@@ -273,9 +273,6 @@ static void twi_handle(void)
 }
 
 
-static void (*jump_to_app)(void) __attribute__((noreturn)) = (void *)0x0000;
-
-
 void init1(void) __attribute__((naked, section(".init1")));
 void init1(void)
 {
@@ -287,7 +284,7 @@ void init1(void)
 int main(void) __attribute__((OS_main, section(".init9")));
 int main(void)
 {
-    /* -nostartfiles skips .bss zeroing; explicitly init critical state for warm resets */
+    /* explicitly re-init critical state rather than relying on .bss clearing */
     bl_mode            = BL_HOLD;
     page_write_pending = 0;
     page_write_ready   = 0;
@@ -378,5 +375,6 @@ int main(void)
     TWCR  = 0x00;
     TCCR0 = 0x00;
 
-    jump_to_app();
+    ((void (*)(void))0x0000)();
+    __builtin_unreachable();
 }
