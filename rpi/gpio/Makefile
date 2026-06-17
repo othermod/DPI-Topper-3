@@ -1,17 +1,21 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -O2
-TARGET = gpio
+# Cross-compilers
+CC_32 = arm-linux-gnueabi-gcc -march=armv6zk -mfloat-abi=softfp
+CC_64 = aarch64-linux-gnu-gcc
 
-all: $(TARGET)
+CFLAGS_COMMON = -Wall -Wextra -O2
 
-$(TARGET): gpio.c
-	$(CC) $(CFLAGS) -o $@ $<
+# Build for 32-bit architecture
+32:
+	@mkdir -p 32
+	$(CC_32) -o 32/gpio gpio.c $(CFLAGS_COMMON)
 
-32: $(TARGET)
+# Build for 64-bit architecture
+64:
+	@mkdir -p 64
+	$(CC_64) -o 64/gpio gpio.c $(CFLAGS_COMMON)
 
-64: $(TARGET)
-
+# Clean build artifacts
 clean:
-	rm -f $(TARGET)
+	rm -rf 32 64
 
-.PHONY: all 32 64 clean
+.PHONY: 32 64 clean
