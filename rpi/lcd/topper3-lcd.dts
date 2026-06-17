@@ -8,6 +8,8 @@
  *
  * Note: I2C1 on GPIOs 2/3 is omitted here.
  * Enable it separately with: dtoverlay=i2c1
+ *
+ * 2026: hback-porch 8 -> 48; removed unused hsync-active/vsync-active.
  */
 
 /dts-v1/;
@@ -78,13 +80,11 @@
                     hactive = <800>;
                     hfront-porch = <8>;
                     hsync-len = <4>;
-                    hback-porch = <8>;
-                    hsync-active = <0>;
+                    hback-porch = <48>;
                     vactive = <480>;
                     vfront-porch = <8>;
                     vsync-len = <4>;
                     vback-porch = <8>;
-                    vsync-active = <0>;
                     de-active = <1>;
                     pixelclk-active = <1>;
                 };
