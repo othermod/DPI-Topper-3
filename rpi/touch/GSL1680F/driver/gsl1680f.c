@@ -27,9 +27,18 @@
 #define SCREEN_MAX_X 800
 #define SCREEN_MAX_Y 480
 
+/* ---- jitter filter config ---- */
+#define DEAD_ZONE   8    /* if movement from previous frame is within this
+range on both axes, average rather than emit raw */
+#define AVG_WINDOW  8    /* number of recent samples to average over */
+
+/* ---- panel offset correction ---- */
+#define OFFSET_X    0    /* shift touch frame horizontally; positive = right */
+#define OFFSET_Y    0    /* shift touch frame vertically;   positive = down  */
+
 static volatile int running = 1;
 static int i2c_fd = -1;
-static int ui_fd = -1;
+static int ui_fd  = -1;
 
 static void on_sigint(int sig) { (void)sig; running = 0; }
 
@@ -39,7 +48,7 @@ static void msleep(int ms)
     nanosleep(&ts, NULL);
 }
 
-/* ---- I2C access, identical to gsl1680_test.c ---- */
+/* ---- I2C access ---- */
 
 static int gsl_write(uint8_t reg, const uint8_t *data, size_t len)
 {
@@ -137,8 +146,8 @@ static int emit(int fd, int type, int code, int value)
 {
     struct input_event ev;
     memset(&ev, 0, sizeof(ev));
-    ev.type = type;
-    ev.code = code;
+    ev.type  = type;
+    ev.code  = code;
     ev.value = value;
     return write(fd, &ev, sizeof(ev)) == sizeof(ev) ? 0 : -1;
 }
@@ -147,7 +156,7 @@ static int uinput_setup_axis(int fd, int code, int min, int max)
 {
     struct uinput_abs_setup s;
     memset(&s, 0, sizeof(s));
-    s.code = code;
+    s.code            = code;
     s.absinfo.minimum = min;
     s.absinfo.maximum = max;
     return ioctl(fd, UI_ABS_SETUP, &s);
@@ -158,25 +167,25 @@ static int create_uinput_device(void)
     int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
     if (fd < 0) { fprintf(stderr, "open /dev/uinput: %m\n"); return -1; }
 
-    ioctl(fd, UI_SET_EVBIT, EV_SYN);
-    ioctl(fd, UI_SET_EVBIT, EV_KEY);
+    ioctl(fd, UI_SET_EVBIT,  EV_SYN);
+    ioctl(fd, UI_SET_EVBIT,  EV_KEY);
     ioctl(fd, UI_SET_KEYBIT, BTN_TOUCH);
-    ioctl(fd, UI_SET_EVBIT, EV_ABS);
+    ioctl(fd, UI_SET_EVBIT,  EV_ABS);
     ioctl(fd, UI_SET_ABSBIT, ABS_MT_SLOT);
     ioctl(fd, UI_SET_ABSBIT, ABS_MT_TRACKING_ID);
     ioctl(fd, UI_SET_ABSBIT, ABS_MT_POSITION_X);
     ioctl(fd, UI_SET_ABSBIT, ABS_MT_POSITION_Y);
     ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT);
 
-    uinput_setup_axis(fd, ABS_MT_SLOT, 0, MAX_FINGERS - 1);
+    uinput_setup_axis(fd, ABS_MT_SLOT,        0, MAX_FINGERS - 1);
     uinput_setup_axis(fd, ABS_MT_TRACKING_ID, 0, 65535);
-    uinput_setup_axis(fd, ABS_MT_POSITION_X, 0, SCREEN_MAX_X - 1);
-    uinput_setup_axis(fd, ABS_MT_POSITION_Y, 0, SCREEN_MAX_Y - 1);
+    uinput_setup_axis(fd, ABS_MT_POSITION_X,  0, SCREEN_MAX_X - 1);
+    uinput_setup_axis(fd, ABS_MT_POSITION_Y,  0, SCREEN_MAX_Y - 1);
 
     struct uinput_setup usetup;
     memset(&usetup, 0, sizeof(usetup));
     usetup.id.bustype = BUS_I2C;
-    usetup.id.vendor = 0x1680;
+    usetup.id.vendor  = 0x1680;
     usetup.id.product = 0x1680;
     strcpy(usetup.name, "GSL1680 Touchscreen");
     ioctl(fd, UI_DEV_SETUP, &usetup);
@@ -189,16 +198,77 @@ static int create_uinput_device(void)
     return fd;
 }
 
-/* Translate one polled GSL1680 frame into MT slot events. */
+/* ---- per-slot jitter filter ---- */
+
+static int buf_x    [MAX_FINGERS][AVG_WINDOW];
+static int buf_y    [MAX_FINGERS][AVG_WINDOW];
+static int buf_idx  [MAX_FINGERS];
+static int buf_count[MAX_FINGERS];
+static int prev_x   [MAX_FINGERS];
+static int prev_y   [MAX_FINGERS];
+
+static void filter_reset(int slot)
+{
+    buf_idx[slot]   = 0;
+    buf_count[slot] = 0;
+}
+
+/*
+ * Feed a raw sample into the filter for this slot.
+ *
+ * The dead zone is compared against the previous frame's raw position,
+ * not a static anchor. This means:
+ *   - held still: frame-to-frame jitter is small, stays in dead zone,
+ *     gets averaged away
+ *   - any drag (fast or slow): each frame's movement is compared to the
+ *     last frame, so the buffer resets every frame and the exact position
+ *     is emitted with no lag or stepping
+ *
+ * prev_x/prev_y are updated unconditionally every frame so the comparison
+ * is always against the most recent raw read.
+ */
+static void filter_slot(int slot, int x, int y, int *out_x, int *out_y)
+{
+    int dx = x - prev_x[slot];
+    int dy = y - prev_y[slot];
+
+    prev_x[slot] = x;
+    prev_y[slot] = y;
+
+    if (dx > DEAD_ZONE || dx < -DEAD_ZONE || dy > DEAD_ZONE || dy < -DEAD_ZONE) {
+        /* moved more than dead zone from last frame: emit exact position */
+        filter_reset(slot);
+        *out_x = x;
+        *out_y = y;
+    } else {
+        /* within dead zone: accumulate and emit rolling average */
+        buf_x[slot][buf_idx[slot]] = x;
+        buf_y[slot][buf_idx[slot]] = y;
+        buf_idx[slot] = (buf_idx[slot] + 1) % AVG_WINDOW;
+        if (buf_count[slot] < AVG_WINDOW)
+            buf_count[slot]++;
+
+        long sx = 0, sy = 0;
+        for (int i = 0; i < buf_count[slot]; i++) {
+            sx += buf_x[slot][i];
+            sy += buf_y[slot][i];
+        }
+        *out_x = (int)(sx / buf_count[slot]);
+        *out_y = (int)(sy / buf_count[slot]);
+    }
+}
+
+/* ---- frame processing ---- */
+
 static void process_frame(const uint8_t *buf)
 {
-    static int slot_active[MAX_FINGERS] = {0};
-    static int next_tracking_id = 1;
-    static int prev_any_touch = 0;
+    static int slot_active     [MAX_FINGERS] = {0};
+    static int next_tracking_id              = 1;
+    static int prev_any_touch                = 0;
 
     int frame_active[MAX_FINGERS] = {0};
-    int frame_x[MAX_FINGERS] = {0};
-    int frame_y[MAX_FINGERS] = {0};
+    int frame_x     [MAX_FINGERS] = {0};
+    int frame_y     [MAX_FINGERS] = {0};
 
     int touched = buf[0];
     if (touched > MAX_FINGERS)
@@ -222,14 +292,36 @@ static void process_frame(const uint8_t *buf)
         if (frame_active[slot]) {
             any_touch = 1;
             emit(ui_fd, EV_ABS, ABS_MT_SLOT, slot);
-            if (!slot_active[slot])
+
+            if (!slot_active[slot]) {
+                /* first appearance: seed prev position and reset buffer,
+                 * then emit exact position (average of one sample = itself) */
+                filter_reset(slot);
+                prev_x[slot] = frame_x[slot];
+                prev_y[slot] = frame_y[slot];
                 emit(ui_fd, EV_ABS, ABS_MT_TRACKING_ID, next_tracking_id++);
-            emit(ui_fd, EV_ABS, ABS_MT_POSITION_X, frame_x[slot]);
-            emit(ui_fd, EV_ABS, ABS_MT_POSITION_Y, frame_y[slot]);
+            }
+
+            int fx, fy;
+            filter_slot(slot, frame_x[slot], frame_y[slot], &fx, &fy);
+
+            fx += OFFSET_X;
+            fy += OFFSET_Y;
+            if (fx < 0) fx = 0;
+            if (fy < 0) fy = 0;
+            if (fx > SCREEN_MAX_X - 1) fx = SCREEN_MAX_X - 1;
+            if (fy > SCREEN_MAX_Y - 1) fy = SCREEN_MAX_Y - 1;
+
+            emit(ui_fd, EV_ABS, ABS_MT_POSITION_X, fx);
+            emit(ui_fd, EV_ABS, ABS_MT_POSITION_Y, fy);
+
         } else if (slot_active[slot]) {
+            /* finger lifted: clear filter state for this slot */
+            filter_reset(slot);
             emit(ui_fd, EV_ABS, ABS_MT_SLOT, slot);
             emit(ui_fd, EV_ABS, ABS_MT_TRACKING_ID, -1);
         }
+
         slot_active[slot] = frame_active[slot];
     }
 
@@ -240,6 +332,8 @@ static void process_frame(const uint8_t *buf)
 
     emit(ui_fd, EV_SYN, SYN_REPORT, 0);
 }
+
+/* ---- main ---- */
 
 int main(int argc, char **argv)
 {
